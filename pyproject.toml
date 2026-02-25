@@ -1,0 +1,18 @@
+[build-system]
+requires = ["hatchling >= 1.29.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "py-ctln"
+version = "0.0.1"
+dependencies = [
+    "numpy",
+    "scipy",
+    "matplotlib"
+]
+authors = [
+    { name="Olivia Kaminske", email="livkaminske@gmail.com" },
+    { name="Caitlyn Parmelee" },
+]
+description = "A package for assisting in the research of Combinatorial Threshold Linear Networks"
+readme = "README.md"
