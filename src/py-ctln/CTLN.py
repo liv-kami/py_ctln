@@ -720,11 +720,124 @@ class CTLN():
     # for ease of use.
     run_ctln_model_script = plot_soln
 
+    @classmethod
+    def is_uid(cls, sA):
+        """A method for seeing if a CTLN is uniform in-degree
+
+        Checks that all of the row sums are equal
+
+        Parameters
+        ----------
+        sA : array-like
+            The adjacency matrix of the CTLN.
+
+        Returns
+        -------
+        bool
+            True if the CTLN is uniform in-degree, False otherwise
+        """
+        sA = cls._check_adjacency(sA)
+        return len(np.unique(np.sum(sA,axis=1))) == 1
+
+    @classmethod
+    def is_uod(cls, sA):
+        """A method for seeing if a CTLN is uniform out-degree
+
+        Checks that all of the column sums are equal
+
+        Parameters
+        ----------
+        sA : array-like
+            The adjacency matrix of the CTLN.
+
+        Returns
+        -------
+        bool
+            True if the CTLN is uniform out-degree, False otherwise
+        """
+        sA = cls._check_adjacency(sA)
+        return len(np.unique(np.sum(sA,axis=0))) == 1
+
+    @classmethod
+    def is_core(cls, sA):
+        """A method for seeing if a CTLN is core.
+
+        A core motif is a CTLN that has exactly one fixed point support
+        which includes every node of the graph.
+
+        Parameters
+        ----------
+        sA : array-like
+            The adjacency matrix of the CTLN.
+
+        Returns
+        -------
+        is_core : bool
+            True if the CTLN is a core motif, False otherwise
+        """
+
+        # Validate and convert the given adjacency matrix
+        sA = cls._check_adjacency(sA)
+
+        # Let n be the size of the ctln (number of rows/columns in W,
+        # number of neurons, etc.)
+        n = sA.shape[0]
+
+        # Get the list of fp supports for the CTLN
+        supports = cls.get_fp(sA)[1]
+
+        # Default to assuming the CTLN is *not* core
+        is_core = False
+
+        # If there is only one support with all of the nodes, change
+        # is_core to True
+        if len(supports) == 1 and len(supports[0])==n:
+            is_core = True
+
+        # Return the boolean of whether or not the CTLN is a core motif.
+        return is_core
+
+    @classmethod
+    def is_permitted(cls, sA):
+        """A method for seeing if a CTLN is permitted.
+
+        A permitted motif is a CTLN that has a fixed point support
+        containing every node of the graph (though this support is not
+        necessarily the *only* one, as in core motifs).
+
+        Parameters
+        ----------
+        sA : array-like
+            The adjacency matrix of the CTLN.
+
+        Returns
+        -------
+        is_permitted : bool
+            True if the CTLN is a permitted motif, False otherwise
+        """
+
+        # Validate and convert the given adjacency matrix
+        sA = cls._check_adjacency(sA)
+
+        # Let n be the size of the ctln (number of rows/columns in W,
+        # number of neurons, etc.)
+        n = sA.shape[0]
+
+        # Get the list of fp supports for the CTLN
+        supports = cls.get_fp(sA)[1]
+
+        # Checks if any fixed point support contains all nodes
+        is_permitted = np.any([len(sup)==n for sup in supports])
+
+        # Return the boolean of whether or not the CTLN is a
+        # permitted motif.
+        return is_permitted
+
 # ─────────────── Livs Testing (to Be Removed Later) ───────────────
 
 def liv_test():
-    a = [[0, 0, 1], [1, 0, 1], [0, 1, 0]]
-    CTLN.run_ctln_model_script(a)
+    a = [[0, 0, 1], [1, 0, 0], [0, 1, 0]]
+    print(CTLN.is_permitted(a))
 
 if __name__ == '__main__':
     liv_test()
@@ -732,14 +845,12 @@ if __name__ == '__main__':
 # ─────────────────────── Caitlyn's Wishlist ───────────────────────
 
 """
-[] - run_ctln_model_script
-[] - find fixed pts
-[] - is_permitted
-[] - run_ctln_model_script
-[] - find fixed pts
-[] - is_permitted
-[] - is_core
-[] - is_strongly_core
+[~] - run_ctln_model_script
+[x] - find fixed pts
+[x] - is_permitted
+[x] - is_core
+[] - is_strongly_core (core and every proper subset is ruled out by 
+        graphical domination)
 [] - is_cyc_union
 [] - is_clique_union
 [] - is_connected_union
@@ -750,12 +861,12 @@ if __name__ == '__main__':
 [] - identify simply-embedded partitions
 [] - identify strong simply-embedded partitions
 [] - identify/construct circulant graphs (with their notation I assume)
-[] - plot graphs
-[] - find hamiltonian cycles
+[x] - plot graphs
+[] - find hamiltonian cycles/is_hamiltonian
 [] - all_cycles function (not on her list but I'm adding it)
 [] - is_connected
 [] - is_strongly_connected
-[] - in/out-degree and uniformity
+[x] - check uniform in/out-degree
 [] - identify firing sequence from ode solution
 [] - construct graphs (cycles, composite, circulant, etc.)
 """
