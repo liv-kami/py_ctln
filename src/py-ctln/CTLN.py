@@ -579,6 +579,12 @@ class CTLN():
             x0 = kwargs['x0']
         else:
             x0 = 0.1*np.random.uniform(size=n)
+            # TODO: check the x0 generation - it is the uniform random
+            #  stuff but it seems to always be really high which seems
+            #  sketch to me
+            #  could be related to the y axis scaling but I
+            #  feel like it should not *always* start higher than it
+            #  ends up...
 
         # Allow b to be user defined, otherwise default to a column of
         # 1s multiplied by theta
@@ -707,6 +713,8 @@ class CTLN():
 
         # Displays the figure
         plt.show()
+        #TODO: look into adding the other windows for this script
+        #   (projection and bars thing)
 
     # Alias for plot_soln that was used in prior code. Continued here
     # for ease of use.
@@ -721,12 +729,33 @@ def liv_test():
 if __name__ == '__main__':
     liv_test()
 
-# ──────────────────────── Livs To-do List ─────────────────────────
+# ─────────────────────── Caitlyn's Wishlist ───────────────────────
 
-# - separate module for loading the named/known sets of ctlns!
-# - check the x0 generation - it is the uniform random stuff but it
-#          seems to always be really high which seems sketch to me
-#            could be related to the y axis scaling but I feel like it
-#               should not *always* start higher than it ends up...
-# - Probably need to get the other windows from model script (bars and
-#       projection). Will likely need caitlyn's advice for this bit...
+"""
+[] - run_ctln_model_script
+[] - find fixed pts
+[] - is_permitted
+[] - run_ctln_model_script
+[] - find fixed pts
+[] - is_permitted
+[] - is_core
+[] - is_strongly_core
+[] - is_cyc_union
+[] - is_clique_union
+[] - is_connected_union
+[] - is_composite_graph (?)
+[] - find/check domination
+[] - reduce graph (using domination)
+[] - identify directional cycle covers and weakly directional covers
+[] - identify simply-embedded partitions
+[] - identify strong simply-embedded partitions
+[] - identify/construct circulant graphs (with their notation I assume)
+[] - plot graphs
+[] - find hamiltonian cycles
+[] - all_cycles function (not on her list but I'm adding it)
+[] - is_connected
+[] - is_strongly_connected
+[] - in/out-degree and uniformity
+[] - identify firing sequence from ode solution
+[] - construct graphs (cycles, composite, circulant, etc.)
+"""
