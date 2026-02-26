@@ -139,10 +139,8 @@ class _KnownNetworks:
             f"core_{n}.pkl")
         if not path_ref.exists():
             raise ValueError(f'Sorry, we do not yet have the list you '
-                             f'requested: core_{n})')
+                             f'requested: core_n({n})')
         return cls._load_data(path_ref)
-
-    # TODO: Create the ones we have
 
     # TODO: Add more types/classes of CTLNs we can have lists of!
 
@@ -982,10 +980,8 @@ class CTLN:
 # ─────────────── Livs Testing (to Be Removed Later) ───────────────
 
 if __name__ == '__main__':
-    _KnownNetworks._convert_mat_to_pkl(
-        'known_network_data/n2_digraphs.mat',
-        'all_2'
-    )
+
+    pass
 
 # ─────────────────────── Caitlyn's Wishlist ───────────────────────
 
