@@ -1,5 +1,5 @@
-# The py-ctln Package README
-## What is py-ctln?
+# The py_ctln Package README
+## What is py_ctln?
 blah blah blah what is the package and whatnot...
 
 ## Installation
