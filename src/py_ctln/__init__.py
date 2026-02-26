@@ -1150,18 +1150,107 @@ class CTLN:
         # Returns true if the reachability matrix is all positive.
         return np.all(M > 0)
 
+    @classmethod
+    def is_weakly_connected(cls, sA):
+        '''A method for determining if a CTLN is weakly connected.
+
+        The easiest way to find if a digraph is weakly connected is to
+        find the underlying non-directed graph and check if *it* is
+        connected.
+
+        Parameters
+        ----------
+        sA : array-like
+            The adjacency matrix of the CTLN.
+
+        Returns
+        -------
+        True if the CTLN is weakly connected, False otherwise.
+        '''
+
+        # Validates and converts the given adjacency matrix
+        sA = cls._check_adjacency(sA)
+
+        # Makes sA symmetric (as if it were an undirected graph)
+        sA = sA + np.transpose(sA)
+
+        # Replaces any non-zeroes we created with 1s to get back to a
+        # valid adjacency matrix
+        sA[sA != 0] = 1
+
+        # Uses the previous method to see if this underlying graph is
+        # connected
+        return cls.is_strongly_connected(sA)
+
+    @classmethod
+    def is_connected(cls, sA):
+        """A method for determining if a CTLN is connected.
+
+        Parameters
+        ----------
+        sA : array-like
+            The adjacency matrix of the CTLN.
+
+        Returns
+        -------
+        A list of the form (is_weakly_connected, is_strongly_connected)
+        """
+        sA = cls._check_adjacency(sA)
+        return [cls.is_weakly_connected(sA), cls.is_strongly_connected(sA)]
+
+    @classmethod
+    def is_strongly_core(cls, sA):
+        """A method for determining if a CTLN is strongly core.
+
+        A CTLN is strongly core if it is both a core motif and each of
+        it's subgraphs that are not fixed point supports (all but the
+        largest) are ruled out by some form of graphical domination.
+
+        Parameters
+        ----------
+        sA : array-like
+            The adjacency matrix of the CTLN.
+
+        Returns
+        -------
+        True if the CTLN is strongly core, False otherwise.
+        """
+
+        # Validates and converts the given adjacency matrix
+        sA = cls._check_adjacency(sA)
+
+        # Let n be the size of the ctln (number of rows/columns in W,
+        # number of neurons, etc.)
+        n = sA.shape[0]
+
+        # If it is not core, we can safely say it is not strongly core
+        if not CTLN.is_core(sA):
+            return False
+
+        # If there are domination relationships for each sigma other
+        # than the maximal one, return True. Otherwise return False
+        if len(
+                np.unique([a for b in cls.find_domination(sA)[2] for a
+                          in b])
+        ) != len(
+            [x for y in [list(combinations(list(range(n)),i+1)) for i in
+                         range(n)] for x in y])-1:
+            return True
+        else:
+            return False
+
+
+        #TODO: Needs more proper testing :(
+
 # ──────────────────────── To-do By v0.1.0 ─────────────────────────
 
 t = [[0,0,1],[1,0,0],[0,1,0]]
-print(CTLN.is_strongly_connected(t))
+print((CTLN.is_strongly_core(t)))
 
 # Gonna move the ones I think are most important/easiest to implement so
 # we'll guarantee those are completed for 0.1.0
 
 # TODO: run_ctln_model_script (partially complete)
-# TODO: is_strongly_core (core and every proper subset is ruled out by
-#       graphical domination)
-# TODO: is_connected
 
 # ─────────────────────── Caitlyn's Wishlist ───────────────────────
 
