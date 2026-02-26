@@ -8,25 +8,138 @@ import matplotlib.colors as mcolors
 import matplotlib.patches as mpatches
 import pickle
 from importlib.resources import files
+from pathlib import Path
 
 # ────────────────────── Known Networks Class ──────────────────────
 
 class _KnownNetworks:
+    """A helper class for managing requests to use existing lists of
+    known classes of CTLNs. This class allows us to provide these lists
+    without forcing the user to load them all ahead of time, as these
+    lists can get quite large.
+
+    Note that this class is not designed to be used *directly*,
+    but rather a user should access these lists through the CTLN class
+    via CTLN.collections.method_name_here()
+
+    Methods
+    -------
+    _load_data(path_ref)
+        Not intended for use by the end user. This handles the loading of
+        the pkl files and returns the list for the user
+    _convert_mat_to_pkl(mat_ref, save_name, mat_part)
+        Not intended for use by the end user. This handles the
+        conversion of old .mat files to the python-preferred .pkl format.
+    all_n(n)
+        Returns a list of all CTLNs with n nodes.
+    core_n(n)
+        Returns a list of all CTLNs with n nodes that are *core motifs*.
+    """
 
     @staticmethod
     def _load_data(path_ref):
+        """A method to load a list of CTLNs from a pkl data file.
+
+        Parameters
+        ----------
+        path_ref : string
+            The path to the pkl data file. Should be provided by
+            importlib.files function.
+
+        Returns
+        -------
+        Returns the requested list of CTLNs.
+        """
         with path_ref.open('rb') as f:
             return pickle.load(f)
 
     @classmethod
     def all_n(cls, n):
-        path_ref = files("py_ctln.known_network_data") / f"all_{n}.pkl"
+        """A method for obtaining a list of all CTLNs with n nodes.
+
+        Parameters
+        ----------
+        n : integer
+            The number of nodes to obtain all CTLNs for.
+
+        Returns
+        -------
+        Returns the requested list.
+
+        Raises
+        ------
+        ValueError
+            If the requested list cannot be found.
+        """
+        path_ref : Path = files("py_ctln.known_network_data").joinpath(
+            "all_{n}.pkl")
+        if not path_ref.exists():
+            raise ValueError(f'Sorry, we do not yet have the list you '
+                             f'requested: all_n({n}')
         return cls._load_data(path_ref)
 
     @classmethod
     def core_n(cls, n):
-        path_ref = files("py_ctln.known_network_data") / f"core_{n}.pkl"
+        """A method for obtaining a list of all CTLNs with n nodes that
+        are *core motifs*.
+
+        Parameters
+        ----------
+        n : integer
+            The number of nodes to obtain all core CTLNs for.
+
+        Returns
+        -------
+        Returns the requested list.
+        """
+        path_ref : Path = files("py_ctln.known_network_data").joinpath(
+            "core_{n}.pkl")
+        if not path_ref.exists():
+            raise ValueError(f'Sorry, we do not yet have the list you '
+                             f'requested: core_{n}')
         return cls._load_data(path_ref)
+
+    @staticmethod
+    def _convert_mat_to_pkl(mat_path:str, save_name:str, mat_part:str =
+    'sAcell'):
+        """Converts a given existing .mat file to a pkl file for
+        implementing as a known network in the package. Saves the
+        resulting pkl file to the data folder to be included in the
+        subsequent release. Not intended for use beyond being helpful
+        for the maintenance and development of this package.
+
+        When we had all of our code in MatLab, our lists of different
+        CTLNs were stored in .mat files which are pretty inconvenient to
+        use in python, especially if we want to have them included with a
+        package like we do here. So, this method assists in converting
+        those old files into the pkl format for including in the package.
+
+        Parameters
+        ----------
+        mat_path : string
+            The file path to where the .mat file is currently stored.
+        save_name : string
+            The name of the file to save the pkl file to. Do *not*
+            include the file extension .pkl, it is added automatically.
+        mat_part : string
+            The name of the "part" of the mat file to be read as the
+            list of matrices. This is typically 'sAcell' for the files I
+            have seen us use, but the option to change it is given here
+            in case that is not always true. (Defaults to 'sAcell')
+        """
+
+        # Imports the necessary function for loading .mat files in
+        # python from scipy
+        from scipy.io import loadmat
+
+        # Grabs the list of matrices from the .mat file and converts it
+        # into the format we need for python to use them efficiently
+        mats = list(loadmat(mat_path).get(mat_part).flatten())
+
+        # Saves the newly formatted list to a .pkl file in the data
+        # folder to be included in the package distribution.
+        with open(f'known_network_data/{save_name}.pkl', 'wb') as f:
+            pickle.dump(mats, f)
 
     #TODO: Add more types/classes of CTLNs we can have lists of!
 
@@ -34,6 +147,8 @@ class _KnownNetworks:
 
     #TODO: Add error checking so if we try a path that doesn't exist it
     # doesn't explode lol.
+
+    #TODO: Test the new error checking!
 
 # ──────────────────────── Main Ctln Funcs ─────────────────────────
 
@@ -86,6 +201,8 @@ class CTLN:
     run_ctln_model_script(sA)
         An alias for plot_soln.
     """
+
+    #TODO: add new methods to the docs here!
 
     epsilon: float = 0.25
     delta: float = 0.5
@@ -868,19 +985,16 @@ class CTLN:
 
 # ─────────────── Livs Testing (to Be Removed Later) ───────────────
 
-def build_pkls(mat):
+def build_pkls(mat_path:str, save_name:str):
     from scipy.io import loadmat
-    mats = list(loadmat(mat).get('sAcell').flatten())
-    with open('known_network_data/all_3.pkl', 'wb') as f:
+    mats = list(loadmat(mat_path).get('sAcell').flatten())
+    with open(f'known_network_data/{save_name}.pkl', 'wb') as f:
         pickle.dump(mats, f)
 
-def liv_test():
-    a = [[0, 0, 1], [1, 0, 0], [0, 1, 0]]
-
 if __name__ == '__main__':
-    # build_pkls('known_network_data/n3_digraphs.mat')
-    t = CTLN.collections.all_n(3)
-    print([CTLN.is_core(a) for a in t])
+    # build_pkls('known_network_data/n5_digraphs.mat')
+    # t = CTLN.collections.all_n(3)
+    # print([CTLN.is_core(a) for a in t])
 
 # ─────────────────────── Caitlyn's Wishlist ───────────────────────
 
@@ -908,3 +1022,6 @@ if __name__ == '__main__':
 #       (Can also check the ctln github to see if theres stuff there)
 
 # TODO: finalize readme and make the docs on github
+
+# TODO: Ensure we mention our matrices being transposed when doing
+#  documentation and whatnot on github, etc.
