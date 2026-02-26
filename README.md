@@ -2,6 +2,15 @@
 
 **Disclaimer**: Please note that this package is in its earliest beta phase. Nothing here is finalized whatsoever. Use at your own risk!
 
+### Navigation Shortcuts:
+[What is py_ctln?](#what-is-py_ctln)\
+[Installation](#installation)\
+[Usage](#usage)\
+[!!! Important Usage Note !!!](#-important-note-)\
+[Resources, References, and Background](#resources-references-and-background)\
+[Acknowledgements](#acknowledgements)
+
+
 ## What is py_ctln?
 
 `py_ctln` is a python package made by the applied mathematician Olivia Kaminske (Liv)

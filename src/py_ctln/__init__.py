@@ -1015,10 +1015,10 @@ if __name__ == '__main__':
 # TODO: Look for more functionality to add! (After the rest lol)
 #       (Can also check the ctln github to see if theres stuff there)
 
-# TODO: finalize readme and make the docs on github
-
 # TODO: Ensure we mention our matrices being transposed when doing
 #  documentation and whatnot on github, etc.
 
 # TODO: Random size n graph generator
 #  (also not from caitlyn, but I want it)
+
+# TODO: Expand the documentation/wiki on github
