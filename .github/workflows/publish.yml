@@ -29,6 +29,7 @@ jobs:
         pip install --upgrade pip
         pipx install hatch
         hatch --version # Verify that Hatch is installed
+        pip install virtualenv
         pip show virtualenv
     - name: Build package
       run: hatch build
