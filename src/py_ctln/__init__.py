@@ -194,9 +194,15 @@ class CTLN:
         A method that plots both the graph and the solution of the CTLN.
     run_ctln_model_script(sA)
         An alias for plot_soln.
+    is_uid(sA)
+        A method for determining if a CTLN is uniform in-degree.
+    is_uod(sA)
+        A method for determining if a CTLN is uniform out-degree.
+    is_core(sA)
+        A method for determining if a CTLN is a core motif.
+    is_permitted(sA)
+        A method for determining if a CTLN is a permitted motif.
     """
-
-    # TODO: add new methods to the docs here!
 
     epsilon: float = 0.25
     delta: float = 0.5
@@ -720,7 +726,8 @@ class CTLN:
         if kwargs.get('x0') is not None:
             x0 = kwargs['x0']
         else:
-            x0 = 0.1 * np.random.uniform(size=n)
+            x0 = (np.zeros((1,n)) + (0.01 * np.random.uniform(
+                size=n))).flatten().tolist()
             # TODO: check the x0 generation - it is the uniform random
             #  stuff but it seems to always be really high which seems
             #  sketch to me
@@ -1012,3 +1019,6 @@ if __name__ == '__main__':
 
 # TODO: Ensure we mention our matrices being transposed when doing
 #  documentation and whatnot on github, etc.
+
+# TODO: Random size n graph generator
+#  (also not from caitlyn, but I want it)
