@@ -12,7 +12,6 @@ dependencies = [
 ]
 authors = [
     { name="Olivia Kaminske", email="livkaminske@gmail.com" },
-    { name="Caitlyn Parmelee" },
 ]
 description = "A package for assisting in the research of Combinatorial Threshold Linear Networks"
 readme = "README.md"
