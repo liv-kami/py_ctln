@@ -16,3 +16,8 @@ authors = [
 ]
 description = "A package for assisting in the research of Combinatorial Threshold Linear Networks"
 readme = "README.md"
+
+[tool.hatch.build]
+include = [
+    "src/py-ctln/known_network_data/*.pkl"
+]

@@ -5,6 +5,34 @@ from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import matplotlib.patches as mpatches
+import pickle
+from importlib.resources import files
+
+# ────────────────────── Known Networks Class ──────────────────────
+
+class _KnownNetworks():
+
+    @staticmethod
+    def _load_data(path_ref):
+        with path_ref.open('rb') as f:
+            return pickle.load(f)
+
+    @classmethod
+    def all_n(cls, n):
+        path_ref = files("py-ctln.known_network_data") / f"all_{n}.pkl"
+        return cls._load_data(path_ref)
+
+    @classmethod
+    def core_n(cls, n):
+        path_ref = files("py-ctln.known_network_data") / f"core_{n}.pkl"
+        return cls._load_data(path_ref)
+
+    #TODO: Add more types/classes of CTLNs we can have lists of!
+
+    #TODO: Create the ones we have
+
+    #TODO: Add error checking so if we try a path that doesn't exist it
+    # doesn't explode lol.
 
 # ──────────────────────── Main Ctln Class ─────────────────────────
 
@@ -20,6 +48,8 @@ class CTLN():
         The value to use for the epsilon parameter (default is 0.25).
     delta : float, optional
         The value to use for the delta parameter (default is 0.5).
+    collections : _KnownNetworks
+        A pointer for accessing collections of known CTLNs.
 
     Methods
     -------
@@ -58,6 +88,8 @@ class CTLN():
 
     epsilon: float = 0.25
     delta: float = 0.5
+
+    collections = _KnownNetworks()
 
     @staticmethod
     def _get_graph_colors(n):
@@ -837,36 +869,28 @@ class CTLN():
 
 def liv_test():
     a = [[0, 0, 1], [1, 0, 0], [0, 1, 0]]
-    print(CTLN.is_permitted(a))
 
 if __name__ == '__main__':
     liv_test()
 
 # ─────────────────────── Caitlyn's Wishlist ───────────────────────
 
-"""
-[~] - run_ctln_model_script
-[x] - find fixed pts
-[x] - is_permitted
-[x] - is_core
-[] - is_strongly_core (core and every proper subset is ruled out by 
-        graphical domination)
-[] - is_cyc_union
-[] - is_clique_union
-[] - is_connected_union
-[] - is_composite_graph (?)
-[] - find/check domination
-[] - reduce graph (using domination)
-[] - identify directional cycle covers and weakly directional covers
-[] - identify simply-embedded partitions
-[] - identify strong simply-embedded partitions
-[] - identify/construct circulant graphs (with their notation I assume)
-[x] - plot graphs
-[] - find hamiltonian cycles/is_hamiltonian
-[] - all_cycles function (not on her list but I'm adding it)
-[] - is_connected
-[] - is_strongly_connected
-[x] - check uniform in/out-degree
-[] - identify firing sequence from ode solution
-[] - construct graphs (cycles, composite, circulant, etc.)
-"""
+# TODO: run_ctln_model_script (partially complete)
+# TODO: is_strongly_core (core and every proper subset is ruled out by
+#       graphical domination)
+# TODO: is_cyc_union
+# TODO: is_clique_union
+# TODO: is_connected_union
+# TODO: is_composite_graph (?)
+# TODO: find/check domination
+# TODO: reduce graph (using domination)
+# TODO: identify directional cycle covers and weakly directional covers
+# TODO: identify simply-embedded partitions
+# TODO: identify strong simply-embedded partitions
+# TODO: identify/construct circulant graphs (with their notation I assume)
+# TODO: find hamiltonian cycles/is_hamiltonian
+# TODO: all_cycles function (not on her list but I'm adding it)
+# TODO: is_connected
+# TODO: is_strongly_connected
+# TODO: identify firing sequence from ode solution
+# TODO: construct graphs (cycles, composite, circulant, etc.)
