@@ -27,6 +27,7 @@ jobs:
     - name: Install dependencies
       run: |
         pip install --upgrade pip
+        pip install virtualenv==20.39.1
         # pipx install hatch
         python -m pip install hatch
         hatch --version # Verify that Hatch is installed
