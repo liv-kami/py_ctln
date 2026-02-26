@@ -906,3 +906,5 @@ if __name__ == '__main__':
 
 # TODO: Look for more functionality to add! (After the rest lol)
 #       (Can also check the ctln github to see if theres stuff there)
+
+# TODO: finalize readme and make the docs on github
