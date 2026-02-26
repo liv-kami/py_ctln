@@ -18,6 +18,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v5
+    - run: rm -rf .venv __pycache__
     - name: Set up Python
       uses: actions/setup-python@v6
       with:
