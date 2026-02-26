@@ -6,6 +6,19 @@ blah blah blah what is the package and whatnot...
 ## Installation
 blah blah blah
 
+#### Installing Pre-Releases
+If you're looking to install a pre-release (ie. a version that is incomplete and hosted on a branch other than the main
+one), you need only do the following:
+1. Download and unzip the source code from github
+2. Open a terminal and navigate to the folder that resulted from your unzipping
+3. Run the command `hatch build` in that folder, which will create a subdirectory called 'dist'
+4. In the 'dist' subdirectory, find the file with the extension '.whl'
+5. Copy the absolute path to this file, and you may install it for any python environment of your choosing by running 
+the command `pip install path_to_file.whl`
+
+Do keep in mind that pre-releases are often unstable or have broken features. Nonetheless, if you choose to use them and
+have difficulty in the course of building/installing them, see hatch's documentation for more assistance.
+
 ## Usage
 To import the library for usage, include the following line of code with your other imports:
 ```
