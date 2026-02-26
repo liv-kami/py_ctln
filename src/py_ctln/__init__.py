@@ -10,6 +10,7 @@ import pickle
 from importlib.resources import files
 from pathlib import Path
 
+
 # ────────────────────── Known Networks Class ──────────────────────
 
 class _KnownNetworks:
@@ -71,11 +72,11 @@ class _KnownNetworks:
         ValueError
             If the requested list cannot be found.
         """
-        path_ref : Path = files("py_ctln.known_network_data").joinpath(
-            "all_{n}.pkl")
+        path_ref: Path = files("py_ctln.known_network_data") / (
+            f"all_{n}.pkl")
         if not path_ref.exists():
             raise ValueError(f'Sorry, we do not yet have the list you '
-                             f'requested: all_n({n}')
+                             f'requested: all_n({n})')
         return cls._load_data(path_ref)
 
     @classmethod
@@ -92,15 +93,15 @@ class _KnownNetworks:
         -------
         Returns the requested list.
         """
-        path_ref : Path = files("py_ctln.known_network_data").joinpath(
-            "core_{n}.pkl")
+        path_ref: Path = files("py_ctln.known_network_data") / (
+            f"core_{n}.pkl")
         if not path_ref.exists():
             raise ValueError(f'Sorry, we do not yet have the list you '
-                             f'requested: core_{n}')
+                             f'requested: core_{n})')
         return cls._load_data(path_ref)
 
     @staticmethod
-    def _convert_mat_to_pkl(mat_path:str, save_name:str, mat_part:str =
+    def _convert_mat_to_pkl(mat_path: str, save_name: str, mat_part: str =
     'sAcell'):
         """Converts a given existing .mat file to a pkl file for
         implementing as a known network in the package. Saves the
@@ -141,14 +142,9 @@ class _KnownNetworks:
         with open(f'known_network_data/{save_name}.pkl', 'wb') as f:
             pickle.dump(mats, f)
 
-    #TODO: Add more types/classes of CTLNs we can have lists of!
+    # TODO: Create the ones we have
 
-    #TODO: Create the ones we have
-
-    #TODO: Add error checking so if we try a path that doesn't exist it
-    # doesn't explode lol.
-
-    #TODO: Test the new error checking!
+    # TODO: Add more types/classes of CTLNs we can have lists of!
 
 # ──────────────────────── Main Ctln Funcs ─────────────────────────
 
@@ -202,7 +198,7 @@ class CTLN:
         An alias for plot_soln.
     """
 
-    #TODO: add new methods to the docs here!
+    # TODO: add new methods to the docs here!
 
     epsilon: float = 0.25
     delta: float = 0.5
@@ -225,7 +221,7 @@ class CTLN:
         """
 
         # Creates n colors evenlt distributed along the rainbow
-        colors = plt.get_cmap('rainbow',n)
+        colors = plt.get_cmap('rainbow', n)
         colors = colors(np.linspace(0, 1, n))
 
         # Converts the colors to hex codes
@@ -542,7 +538,7 @@ class CTLN:
 
             # Get all possible combinations of nodes
             # (all possible subgraphs with that many nodes)
-            subgraphs = list(combinations(list(range(n)),k+1))
+            subgraphs = list(combinations(list(range(n)), k + 1))
 
             # For each possible subgraph of the CTLN...
             for i in range(len(subgraphs)):
@@ -551,14 +547,14 @@ class CTLN:
                 sig = subgraphs[i]
 
                 # Check if sigma is a fixed point
-                is_fp, x_fp = cls.check_fp(sA,sig)
+                is_fp, x_fp = cls.check_fp(sA, sig)
 
                 # If this sigma *is* a fixed point, add it to the fixpts
                 # list, add its support to the supports list, and add
                 # its stability to the stability list
                 if is_fp:
                     fixpts.append(np.transpose(x_fp))
-                    t_sig = np.array(sig)+1
+                    t_sig = np.array(sig) + 1
                     supports.append(t_sig.tolist())
                     stability.append(cls.check_stability(sA, sig)[0])
 
@@ -566,7 +562,7 @@ class CTLN:
         return [fixpts, supports, stability]
 
     @classmethod
-    def threshlin_ode(cls,sA,t,x0, **kwargs):
+    def threshlin_ode(cls, sA, t, x0, **kwargs):
         """A method for solving the system of piecewise linear ordinary
         differential equations to get the firing rates of the neurons
         over time for a given set of initial conditions
@@ -644,20 +640,18 @@ class CTLN:
             fixed_x[to_fix] = 0
             return fixed_x
 
-
         for i in range(m):
-
             # Builds the differential equations for solving
-            def _model(t,x):
-                return -x + _nonlin(W @ x + b[i,:])
+            def _model(t, x):
+                return -x + _nonlin(W @ x + b[i, :])
 
             # Defines the time interval to solve for
-            tspan = np.arange(t0,t0+t+0.01,0.01)
+            tspan = np.arange(t0, t0 + t + 0.01, 0.01)
 
             # Solves the system of ODEs
             sol = solve_ivp(
                 _model,
-                (tspan[0],tspan[-1]),
+                (tspan[0], tspan[-1]),
                 x0,
                 t_eval=tspan
             )
@@ -671,13 +665,13 @@ class CTLN:
                     over='ignore'
             ):
                 y = W @ np.transpose(x) + (
-                        (b @ np.ones((1, len(np.transpose(x)[1]))))
-                    )
+                    (b @ np.ones((1, len(np.transpose(x)[1]))))
+                )
             soln_y = y
             soln_time = time
 
         # Returns the results of the computation
-        return [W,b,t,x0,soln_y,soln_time,sA]
+        return [W, b, t, x0, soln_y, soln_time, sA]
 
     @classmethod
     def get_soln(cls, sA, **kwargs):
@@ -728,7 +722,7 @@ class CTLN:
         if kwargs.get('x0') is not None:
             x0 = kwargs['x0']
         else:
-            x0 = 0.1*np.random.uniform(size=n)
+            x0 = 0.1 * np.random.uniform(size=n)
             # TODO: check the x0 generation - it is the uniform random
             #  stuff but it seems to always be really high which seems
             #  sketch to me
@@ -741,10 +735,10 @@ class CTLN:
         if kwargs.get('b') is not None:
             b = kwargs['b']
         else:
-            b = theta * np.ones((n,1))
+            b = theta * np.ones((n, 1))
 
         # Compute and return the solution to the system of ODEs
-        return cls.threshlin_ode(sA=sA,b=b,t=t,x0=x0)
+        return cls.threshlin_ode(sA=sA, b=b, t=t, x0=x0)
 
     @classmethod
     def plot_graph(cls, sA, ax=None, show=True):
@@ -779,7 +773,7 @@ class CTLN:
         # the graph to distribute them uniformly around the center.
         r = 1
         idxs = np.array(list(range(n)))
-        x = r * np.cos(-(idxs)*2*np.pi/n + np.pi/2)
+        x = r * np.cos(-(idxs) * 2 * np.pi / n + np.pi / 2)
         y = r * np.sin(-(idxs) * 2 * np.pi / n + np.pi / 2)
 
         # Draws an arrow between every pair of nodes where one exists in
@@ -789,18 +783,18 @@ class CTLN:
                 if sA[i, j] > 0:
                     dx = x[i] - x[j]
                     dy = y[i] - y[j]
-                    ax.arrow(x[j],y[j],dx*0.87, dy*0.87,
+                    ax.arrow(x[j], y[j], dx * 0.87, dy * 0.87,
                              width=0.01,
-                             head_width=0.07,head_length=0.1,
-                             ec="#000000",fc='#000000')
+                             head_width=0.07, head_length=0.1,
+                             ec="#000000", fc='#000000')
 
         # Draws the nodes themselves using the colors and positions
         # determined earlier
-        ax.scatter(x,y,c=colors,s=100)
+        ax.scatter(x, y, c=colors, s=100)
 
         # Frames the graph properly
-        ax.set_xlim(-1.2*r,1.3*r)
-        ax.set_ylim(-1.2*r,1.3*r)
+        ax.set_xlim(-1.2 * r, 1.3 * r)
+        ax.set_ylim(-1.2 * r, 1.3 * r)
 
         # Removes unnecessary tick marks
         ax.set_yticks([])
@@ -833,22 +827,23 @@ class CTLN:
         colors = cls._get_graph_colors(n)
 
         # Creates the figure and axes for plotting
-        fig,axs = plt.subplots(
+        fig, axs = plt.subplots(
             2,
             1,
-            figsize=(6,8),
-            height_ratios=[3,1]
+            figsize=(6, 8),
+            height_ratios=[3, 1]
         )
 
         # Plots the graph portion
-        cls.plot_graph(sA,ax=axs[0], show=False)
+        cls.plot_graph(sA, ax=axs[0], show=False)
 
         # Plots the solution graph and its legend
         ax = axs[1]
         patches = []
         for i in range(n):
-            ax.plot(soln[5],soln[4][i], color=colors[i])
-            patches.append(mpatches.Patch(color=colors[i], label=f'{i+1}'))
+            ax.plot(soln[5], soln[4][i], color=colors[i])
+            patches.append(
+                mpatches.Patch(color=colors[i], label=f'{i + 1}'))
         plt.legend(
             handles=patches,
             frameon=False,
@@ -863,7 +858,7 @@ class CTLN:
 
         # Displays the figure
         plt.show()
-        #TODO: look into adding the other windows for this script
+        # TODO: look into adding the other windows for this script
         #   (projection and bars thing)
 
     # Alias for plot_soln that was used in prior code. Continued here
@@ -887,7 +882,7 @@ class CTLN:
             True if the CTLN is uniform in-degree, False otherwise
         """
         sA = cls._check_adjacency(sA)
-        return len(np.unique(np.sum(sA,axis=1))) == 1
+        return len(np.unique(np.sum(sA, axis=1))) == 1
 
     @classmethod
     def is_uod(cls, sA):
@@ -906,7 +901,7 @@ class CTLN:
             True if the CTLN is uniform out-degree, False otherwise
         """
         sA = cls._check_adjacency(sA)
-        return len(np.unique(np.sum(sA,axis=0))) == 1
+        return len(np.unique(np.sum(sA, axis=0))) == 1
 
     @classmethod
     def is_core(cls, sA):
@@ -941,7 +936,7 @@ class CTLN:
 
         # If there is only one support with all of the nodes, change
         # is_core to True
-        if len(supports) == 1 and len(supports[0])==n:
+        if len(supports) == 1 and len(supports[0]) == n:
             is_core = True
 
         # Return the boolean of whether or not the CTLN is a core motif.
@@ -977,22 +972,24 @@ class CTLN:
         supports = cls.get_fp(sA)[1]
 
         # Checks if any fixed point support contains all nodes
-        is_permitted = np.any([len(sup)==n for sup in supports])
+        is_permitted = np.any([len(sup) == n for sup in supports])
 
         # Return the boolean of whether or not the CTLN is a
         # permitted motif.
         return is_permitted
 
+
 # ─────────────── Livs Testing (to Be Removed Later) ───────────────
 
-def build_pkls(mat_path:str, save_name:str):
+def build_pkls(mat_path: str, save_name: str):
     from scipy.io import loadmat
     mats = list(loadmat(mat_path).get('sAcell').flatten())
     with open(f'known_network_data/{save_name}.pkl', 'wb') as f:
         pickle.dump(mats, f)
 
+
 if __name__ == '__main__':
-    # build_pkls('known_network_data/n5_digraphs.mat')
+    build_pkls('known_network_data/n5_digraphs.mat')
     # t = CTLN.collections.all_n(3)
     # print([CTLN.is_core(a) for a in t])
 
