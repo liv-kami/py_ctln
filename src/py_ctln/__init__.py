@@ -1,4 +1,5 @@
 # ─────────────────────────── Libraries ────────────────────────────
+
 import numpy as np
 from itertools import combinations
 from scipy.integrate import solve_ivp
@@ -10,7 +11,7 @@ from importlib.resources import files
 
 # ────────────────────── Known Networks Class ──────────────────────
 
-class _KnownNetworks():
+class _KnownNetworks:
 
     @staticmethod
     def _load_data(path_ref):
@@ -19,12 +20,12 @@ class _KnownNetworks():
 
     @classmethod
     def all_n(cls, n):
-        path_ref = files("py-ctln.known_network_data") / f"all_{n}.pkl"
+        path_ref = files("py_ctln.known_network_data") / f"all_{n}.pkl"
         return cls._load_data(path_ref)
 
     @classmethod
     def core_n(cls, n):
-        path_ref = files("py-ctln.known_network_data") / f"core_{n}.pkl"
+        path_ref = files("py_ctln.known_network_data") / f"core_{n}.pkl"
         return cls._load_data(path_ref)
 
     #TODO: Add more types/classes of CTLNs we can have lists of!
@@ -34,9 +35,9 @@ class _KnownNetworks():
     #TODO: Add error checking so if we try a path that doesn't exist it
     # doesn't explode lol.
 
-# ──────────────────────── Main Ctln Class ─────────────────────────
+# ──────────────────────── Main Ctln Funcs ─────────────────────────
 
-class CTLN():
+class CTLN:
     """A class used to provide functions for Combinatorial Threshold
     Linear Network (CTLN) calculations and research.
 
@@ -867,11 +868,19 @@ class CTLN():
 
 # ─────────────── Livs Testing (to Be Removed Later) ───────────────
 
+def build_pkls(mat):
+    from scipy.io import loadmat
+    mats = list(loadmat(mat).get('sAcell').flatten())
+    with open('known_network_data/all_3.pkl', 'wb') as f:
+        pickle.dump(mats, f)
+
 def liv_test():
     a = [[0, 0, 1], [1, 0, 0], [0, 1, 0]]
 
 if __name__ == '__main__':
-    liv_test()
+    # build_pkls('known_network_data/n3_digraphs.mat')
+    t = CTLN.collections.all_n(3)
+    print([CTLN.is_core(a) for a in t])
 
 # ─────────────────────── Caitlyn's Wishlist ───────────────────────
 
@@ -894,3 +903,6 @@ if __name__ == '__main__':
 # TODO: is_strongly_connected
 # TODO: identify firing sequence from ode solution
 # TODO: construct graphs (cycles, composite, circulant, etc.)
+
+# TODO: Look for more functionality to add! (After the rest lol)
+#       (Can also check the ctln github to see if theres stuff there)

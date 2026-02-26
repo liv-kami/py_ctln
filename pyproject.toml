@@ -3,7 +3,7 @@ requires = ["hatchling >= 1.29.0"]
 build-backend = "hatchling.build"
 
 [project]
-name = "py-ctln"
+name = "py_ctln"
 version = "0.0.1"
 dependencies = [
     "numpy",
@@ -19,5 +19,8 @@ readme = "README.md"
 
 [tool.hatch.build]
 include = [
-    "src/py-ctln/known_network_data/*.pkl"
+    "src/py_ctln/known_network_data/*.pkl"
 ]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/py_ctln"]
