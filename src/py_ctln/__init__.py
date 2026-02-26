@@ -1,39 +1,148 @@
 # ─────────────────────────── Libraries ────────────────────────────
 
 import numpy as np
-from itertools import combinations
+from itertools import combinations, permutations
 from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import matplotlib.patches as mpatches
 import pickle
 from importlib.resources import files
+from pathlib import Path
+
 
 # ────────────────────── Known Networks Class ──────────────────────
 
 class _KnownNetworks:
+    """A helper class for managing requests to use existing lists of
+    known classes of CTLNs. This class allows us to provide these lists
+    without forcing the user to load them all ahead of time, as these
+    lists can get quite large.
+
+    Note that this class is not designed to be used *directly*,
+    but rather a user should access these lists through the CTLN class
+    via CTLN.collections.method_name_here()
+
+    Methods
+    -------
+    _load_data(path_ref)
+        Not intended for use by the end user. This handles the loading of
+        the pkl files and returns the list for the user
+    _convert_mat_to_pkl(mat_ref, save_name, mat_part)
+        Not intended for use by the end user. This handles the
+        conversion of old .mat files to the python-preferred .pkl format.
+    all_n(n)
+        Returns a list of all CTLNs with n nodes.
+    core_n(n)
+        Returns a list of all CTLNs with n nodes that are *core motifs*.
+    """
 
     @staticmethod
     def _load_data(path_ref):
+        """A method to load a list of CTLNs from a pkl data file.
+
+        Parameters
+        ----------
+        path_ref : string
+            The path to the pkl data file. Should be provided by
+            importlib.files function.
+
+        Returns
+        -------
+        Returns the requested list of CTLNs.
+        """
         with path_ref.open('rb') as f:
             return pickle.load(f)
 
+    @staticmethod
+    def _convert_mat_to_pkl(mat_path: str, save_name: str, mat_part: str =
+    'sAcell'):
+        """Converts a given existing .mat file to a pkl file for
+        implementing as a known network in the package. Saves the
+        resulting pkl file to the data folder to be included in the
+        subsequent release. Not intended for use beyond being helpful
+        for the maintenance and development of this package.
+
+        When we had all of our code in MatLab, our lists of different
+        CTLNs were stored in .mat files which are pretty inconvenient to
+        use in python, especially if we want to have them included with a
+        package like we do here. So, this method assists in converting
+        those old files into the pkl format for including in the package.
+
+        Parameters
+        ----------
+        mat_path : string
+            The file path to where the .mat file is currently stored.
+        save_name : string
+            The name of the file to save the pkl file to. Do *not*
+            include the file extension .pkl, it is added automatically.
+        mat_part : string
+            The name of the "part" of the mat file to be read as the
+            list of matrices. This is typically 'sAcell' for the files I
+            have seen us use, but the option to change it is given here
+            in case that is not always true. (Defaults to 'sAcell')
+        """
+
+        # Imports the necessary function for loading .mat files in
+        # python from scipy
+        from scipy.io import loadmat
+
+        # Grabs the list of matrices from the .mat file and converts it
+        # into the format we need for python to use them efficiently
+        mats = list(loadmat(mat_path).get(mat_part).flatten())
+
+        # Saves the newly formatted list to a .pkl file in the data
+        # folder to be included in the package distribution.
+        with open(f'known_network_data/{save_name}.pkl', 'wb') as f:
+            pickle.dump(mats, f)
+
     @classmethod
     def all_n(cls, n):
-        path_ref = files("py_ctln.known_network_data") / f"all_{n}.pkl"
+        """A method for obtaining a list of all CTLNs with n nodes.
+
+        Parameters
+        ----------
+        n : integer
+            The number of nodes to obtain all CTLNs for.
+
+        Returns
+        -------
+        Returns the requested list.
+
+        Raises
+        ------
+        ValueError
+            If the requested list cannot be found.
+        """
+        path_ref: Path = files("py_ctln.known_network_data") / (
+            f"all_{n}.pkl")
+        if not path_ref.exists():
+            raise ValueError(f'Sorry, we do not yet have the list you '
+                             f'requested: all_n({n})')
         return cls._load_data(path_ref)
 
     @classmethod
     def core_n(cls, n):
-        path_ref = files("py_ctln.known_network_data") / f"core_{n}.pkl"
+        """A method for obtaining a list of all CTLNs with n nodes that
+        are *core motifs*.
+
+        Parameters
+        ----------
+        n : integer
+            The number of nodes to obtain all core CTLNs for.
+
+        Returns
+        -------
+        Returns the requested list.
+        """
+        path_ref: Path = files("py_ctln.known_network_data") / (
+            f"core_{n}.pkl")
+        if not path_ref.exists():
+            raise ValueError(f'Sorry, we do not yet have the list you '
+                             f'requested: core_n({n})')
         return cls._load_data(path_ref)
 
-    #TODO: Add more types/classes of CTLNs we can have lists of!
-
-    #TODO: Create the ones we have
-
-    #TODO: Add error checking so if we try a path that doesn't exist it
-    # doesn't explode lol.
+    # TODO: Add more types/classes of CTLNs we can have lists of!
 
 # ──────────────────────── Main Ctln Funcs ─────────────────────────
 
@@ -85,6 +194,14 @@ class CTLN:
         A method that plots both the graph and the solution of the CTLN.
     run_ctln_model_script(sA)
         An alias for plot_soln.
+    is_uid(sA)
+        A method for determining if a CTLN is uniform in-degree.
+    is_uod(sA)
+        A method for determining if a CTLN is uniform out-degree.
+    is_core(sA)
+        A method for determining if a CTLN is a core motif.
+    is_permitted(sA)
+        A method for determining if a CTLN is a permitted motif.
     """
 
     epsilon: float = 0.25
@@ -108,7 +225,7 @@ class CTLN:
         """
 
         # Creates n colors evenlt distributed along the rainbow
-        colors = plt.get_cmap('rainbow',n)
+        colors = plt.get_cmap('rainbow', n)
         colors = colors(np.linspace(0, 1, n))
 
         # Converts the colors to hex codes
@@ -425,7 +542,7 @@ class CTLN:
 
             # Get all possible combinations of nodes
             # (all possible subgraphs with that many nodes)
-            subgraphs = list(combinations(list(range(n)),k+1))
+            subgraphs = list(combinations(list(range(n)), k + 1))
 
             # For each possible subgraph of the CTLN...
             for i in range(len(subgraphs)):
@@ -434,14 +551,14 @@ class CTLN:
                 sig = subgraphs[i]
 
                 # Check if sigma is a fixed point
-                is_fp, x_fp = cls.check_fp(sA,sig)
+                is_fp, x_fp = cls.check_fp(sA, sig)
 
                 # If this sigma *is* a fixed point, add it to the fixpts
                 # list, add its support to the supports list, and add
                 # its stability to the stability list
                 if is_fp:
                     fixpts.append(np.transpose(x_fp))
-                    t_sig = np.array(sig)+1
+                    t_sig = np.array(sig) + 1
                     supports.append(t_sig.tolist())
                     stability.append(cls.check_stability(sA, sig)[0])
 
@@ -449,7 +566,7 @@ class CTLN:
         return [fixpts, supports, stability]
 
     @classmethod
-    def threshlin_ode(cls,sA,t,x0, **kwargs):
+    def threshlin_ode(cls, sA, t, x0, **kwargs):
         """A method for solving the system of piecewise linear ordinary
         differential equations to get the firing rates of the neurons
         over time for a given set of initial conditions
@@ -527,20 +644,18 @@ class CTLN:
             fixed_x[to_fix] = 0
             return fixed_x
 
-
         for i in range(m):
-
             # Builds the differential equations for solving
-            def _model(t,x):
-                return -x + _nonlin(W @ x + b[i,:])
+            def _model(t, x):
+                return -x + _nonlin(W @ x + b[i, :])
 
             # Defines the time interval to solve for
-            tspan = np.arange(t0,t0+t+0.01,0.01)
+            tspan = np.arange(t0, t0 + t + 0.01, 0.01)
 
             # Solves the system of ODEs
             sol = solve_ivp(
                 _model,
-                (tspan[0],tspan[-1]),
+                (tspan[0], tspan[-1]),
                 x0,
                 t_eval=tspan
             )
@@ -554,13 +669,13 @@ class CTLN:
                     over='ignore'
             ):
                 y = W @ np.transpose(x) + (
-                        (b @ np.ones((1, len(np.transpose(x)[1]))))
-                    )
+                    (b @ np.ones((1, len(np.transpose(x)[1]))))
+                )
             soln_y = y
             soln_time = time
 
         # Returns the results of the computation
-        return [W,b,t,x0,soln_y,soln_time,sA]
+        return [W, b, t, x0, soln_y, soln_time, sA]
 
     @classmethod
     def get_soln(cls, sA, **kwargs):
@@ -611,7 +726,8 @@ class CTLN:
         if kwargs.get('x0') is not None:
             x0 = kwargs['x0']
         else:
-            x0 = 0.1*np.random.uniform(size=n)
+            x0 = (np.zeros((1,n)) + (0.01 * np.random.uniform(
+                size=n))).flatten().tolist()
             # TODO: check the x0 generation - it is the uniform random
             #  stuff but it seems to always be really high which seems
             #  sketch to me
@@ -624,10 +740,10 @@ class CTLN:
         if kwargs.get('b') is not None:
             b = kwargs['b']
         else:
-            b = theta * np.ones((n,1))
+            b = theta * np.ones((n, 1))
 
         # Compute and return the solution to the system of ODEs
-        return cls.threshlin_ode(sA=sA,b=b,t=t,x0=x0)
+        return cls.threshlin_ode(sA=sA, b=b, t=t, x0=x0)
 
     @classmethod
     def plot_graph(cls, sA, ax=None, show=True):
@@ -662,7 +778,7 @@ class CTLN:
         # the graph to distribute them uniformly around the center.
         r = 1
         idxs = np.array(list(range(n)))
-        x = r * np.cos(-(idxs)*2*np.pi/n + np.pi/2)
+        x = r * np.cos(-(idxs) * 2 * np.pi / n + np.pi / 2)
         y = r * np.sin(-(idxs) * 2 * np.pi / n + np.pi / 2)
 
         # Draws an arrow between every pair of nodes where one exists in
@@ -672,18 +788,18 @@ class CTLN:
                 if sA[i, j] > 0:
                     dx = x[i] - x[j]
                     dy = y[i] - y[j]
-                    ax.arrow(x[j],y[j],dx*0.87, dy*0.87,
+                    ax.arrow(x[j], y[j], dx * 0.87, dy * 0.87,
                              width=0.01,
-                             head_width=0.07,head_length=0.1,
-                             ec="#000000",fc='#000000')
+                             head_width=0.07, head_length=0.1,
+                             ec="#000000", fc='#000000')
 
         # Draws the nodes themselves using the colors and positions
         # determined earlier
-        ax.scatter(x,y,c=colors,s=100)
+        ax.scatter(x, y, c=colors, s=100)
 
         # Frames the graph properly
-        ax.set_xlim(-1.2*r,1.3*r)
-        ax.set_ylim(-1.2*r,1.3*r)
+        ax.set_xlim(-1.2 * r, 1.3 * r)
+        ax.set_ylim(-1.2 * r, 1.3 * r)
 
         # Removes unnecessary tick marks
         ax.set_yticks([])
@@ -716,22 +832,23 @@ class CTLN:
         colors = cls._get_graph_colors(n)
 
         # Creates the figure and axes for plotting
-        fig,axs = plt.subplots(
+        fig, axs = plt.subplots(
             2,
             1,
-            figsize=(6,8),
-            height_ratios=[3,1]
+            figsize=(6, 8),
+            height_ratios=[3, 1]
         )
 
         # Plots the graph portion
-        cls.plot_graph(sA,ax=axs[0], show=False)
+        cls.plot_graph(sA, ax=axs[0], show=False)
 
         # Plots the solution graph and its legend
         ax = axs[1]
         patches = []
         for i in range(n):
-            ax.plot(soln[5],soln[4][i], color=colors[i])
-            patches.append(mpatches.Patch(color=colors[i], label=f'{i+1}'))
+            ax.plot(soln[5], soln[4][i], color=colors[i])
+            patches.append(
+                mpatches.Patch(color=colors[i], label=f'{i + 1}'))
         plt.legend(
             handles=patches,
             frameon=False,
@@ -746,7 +863,7 @@ class CTLN:
 
         # Displays the figure
         plt.show()
-        #TODO: look into adding the other windows for this script
+        # TODO: look into adding the other windows for this script
         #   (projection and bars thing)
 
     # Alias for plot_soln that was used in prior code. Continued here
@@ -770,7 +887,7 @@ class CTLN:
             True if the CTLN is uniform in-degree, False otherwise
         """
         sA = cls._check_adjacency(sA)
-        return len(np.unique(np.sum(sA,axis=1))) == 1
+        return len(np.unique(np.sum(sA, axis=1))) == 1
 
     @classmethod
     def is_uod(cls, sA):
@@ -789,7 +906,7 @@ class CTLN:
             True if the CTLN is uniform out-degree, False otherwise
         """
         sA = cls._check_adjacency(sA)
-        return len(np.unique(np.sum(sA,axis=0))) == 1
+        return len(np.unique(np.sum(sA, axis=0))) == 1
 
     @classmethod
     def is_core(cls, sA):
@@ -824,7 +941,7 @@ class CTLN:
 
         # If there is only one support with all of the nodes, change
         # is_core to True
-        if len(supports) == 1 and len(supports[0])==n:
+        if len(supports) == 1 and len(supports[0]) == n:
             is_core = True
 
         # Return the boolean of whether or not the CTLN is a core motif.
@@ -860,38 +977,283 @@ class CTLN:
         supports = cls.get_fp(sA)[1]
 
         # Checks if any fixed point support contains all nodes
-        is_permitted = np.any([len(sup)==n for sup in supports])
+        is_permitted = np.any([len(sup) == n for sup in supports])
 
         # Return the boolean of whether or not the CTLN is a
         # permitted motif.
         return is_permitted
 
-# ─────────────── Livs Testing (to Be Removed Later) ───────────────
+    @classmethod
+    def find_domination(
+            cls,
+            sA,
+            types_to_look_for=(
+                'inside-in',
+                'outside-in',
+                'inside-out',
+                'outside-out'
+            )
+    ):
+        '''A method for finding domination relationships within a CTLN.
 
-def build_pkls(mat):
-    from scipy.io import loadmat
-    mats = list(loadmat(mat).get('sAcell').flatten())
-    with open('known_network_data/all_3.pkl', 'wb') as f:
-        pickle.dump(mats, f)
+        This is specific to *graphical* domination. This is defined such
+        that:
 
-def liv_test():
-    a = [[0, 0, 1], [1, 0, 0], [0, 1, 0]]
+        a node k "graphically dominates" a node j with respect to a
+        subgraph sigma in G if
+        1. For all i in sigma excluding j and k, if i -> j then i -> k
+        2. If j in sigma, then j -> k
+        3. If k in sigma, then k -/> j
 
-if __name__ == '__main__':
-    # build_pkls('known_network_data/n3_digraphs.mat')
-    t = CTLN.collections.all_n(3)
-    print([CTLN.is_core(a) for a in t])
+        For determining the type of domination, the following rules hold:
+        if j and k are in sigma: inside-in
+        if j is in sigma but k is not: outside-in
+        if k is in sigma but j is not: inside-out
+        if j and k are not in sigma: outside-out
+
+        Parameters
+        ----------
+        sA : array-like
+            The adjacency matrix of the CTLN.
+        types_to_look_for : array-list, optional
+            A list of the "types" of domination to look for. (Defaults
+            to all possible types, but exists as an option in case user
+            wants to ignore certain types of domination)
+
+        Returns
+        -------
+        all_k : array-like
+            A list of all the dominator nodes
+        all_j
+            A list of all the dominated nodes
+        all_sigma
+            A list of the sigmas that each k dominates j with respect to
+        all_dom_type
+            A list of the type of domination found for each domination
+            relationship we have
+        '''
+
+        # Validate and convert the given adjacency matrix
+        sA = cls._check_adjacency(sA)
+
+        # Let n be the size of the ctln (number of rows/columns in W,
+        # number of neurons, etc.)
+        n = sA.shape[0]
+
+        # Create empty lists to store results in
+        all_k=[]
+        all_j=[]
+        all_sigma=[]
+        all_dom_type=[]
+
+        # For each sized subgraph...
+        # (collections of 1,2,...,n nodes respectively)
+        for i in range(n):
+            # Get all possible combinations of nodes
+            # (all possible subgraphs with that many nodes)
+            subgraphs = list(combinations(list(range(n)), i + 1))
+
+            # For each sub graph...
+            for l in range(len(subgraphs)):
+                sigma = np.array(subgraphs[l])
+
+                # Get all pairs of nodes to check if one dominates the
+                # other
+                j_k_pairs = list(permutations(list(range(n)), 2))
+
+                # for each j-k pair
+                for j,k in j_k_pairs:
+
+                    # Get all of the nodes in sigma other than j or k to
+                    # check the first condition
+                    sig_no_j_k = np.setdiff1d(sigma,[j,k]).flatten()
+
+                    # If j and k are the same node, just move on (cannot
+                    # dominate yourself)
+                    if j == k:
+                        continue
+
+                    # If any of those i nodes send to j but not to k,
+                    # no domination, move on.
+                    # (fails 1st condition)
+                    if np.any([sA[k,eye]==0 for eye in sig_no_j_k
+                                if sA[j,eye]==1]):
+                        continue
+
+                    # If j is in sigma but does not send to k, move on
+                    # (fails 2nd condition)
+                    if j in sigma and sA[k,j]==0:
+                        continue
+
+                    # If k is in sigma and *does* send to j, move on
+                    # (fails 3rd condition)
+                    if k in sigma and sA[j,k]==1:
+                        continue # if k in sigma, k must NOT send to j
+
+                    # If we reach this point, we know that k dominates j
+                    # with respect to sigma
+
+                    # Sets the domination type using the rules by
+                    # whether j or k are in sigma
+                    dom_type = None
+                    if j in sigma and k in sigma: dom_type = \
+                        'inside-in'
+                    elif j in sigma and k not in sigma: dom_type = \
+                        'outside-in'
+                    elif k in sigma and j not in sigma: dom_type = \
+                        'inside-out'
+                    elif j not in sigma and k not in sigma: dom_type = \
+                        'outside-out'
+
+                    # If the domination type we found is one we want to
+                    # store (per user input), add the results to the
+                    # lists we made earlier
+                    if dom_type in types_to_look_for:
+                        all_k.append(k+1)
+                        all_j.append(j+1)
+                        all_sigma.append(sigma+1)
+                        all_dom_type.append(dom_type)
+
+        # Return the completed lists
+        return [all_k, all_j, all_sigma, all_dom_type]
+
+    @classmethod
+    def is_strongly_connected(cls,sA):
+        '''A method for determining if a CTLN is strongly connected.
+
+        The easiest way to find if a digraph is strongly connected is to
+        use its reachability matrix. This is computed as (sA + I)^n
+
+        If this matrix has all positive entries (including the
+        diagonal), then the digraph is strongly connected.
+
+        Parameters
+        ----------
+        sA : array-like
+            The adjacency matrix of the CTLN.
+
+        Returns
+        -------
+        True if the CTLN is strongly connected, False otherwise.
+        '''
+
+        # Validates and converts the given adjacency matrix
+        sA = cls._check_adjacency(sA)
+
+        # Let n be the size of the ctln (number of rows/columns in W,
+        # number of neurons, etc.)
+        n = sA.shape[0]
+
+        # Calculates the reachability matrix (sA-I)^n
+        M = np.linalg.matrix_power((sA + np.eye(n)),n)
+
+        # Returns true if the reachability matrix is all positive.
+        return np.all(M > 0)
+
+    @classmethod
+    def is_weakly_connected(cls, sA):
+        '''A method for determining if a CTLN is weakly connected.
+
+        The easiest way to find if a digraph is weakly connected is to
+        find the underlying non-directed graph and check if *it* is
+        connected.
+
+        Parameters
+        ----------
+        sA : array-like
+            The adjacency matrix of the CTLN.
+
+        Returns
+        -------
+        True if the CTLN is weakly connected, False otherwise.
+        '''
+
+        # Validates and converts the given adjacency matrix
+        sA = cls._check_adjacency(sA)
+
+        # Makes sA symmetric (as if it were an undirected graph)
+        sA = sA + np.transpose(sA)
+
+        # Replaces any non-zeroes we created with 1s to get back to a
+        # valid adjacency matrix
+        sA[sA != 0] = 1
+
+        # Uses the previous method to see if this underlying graph is
+        # connected
+        return cls.is_strongly_connected(sA)
+
+    @classmethod
+    def is_connected(cls, sA):
+        """A method for determining if a CTLN is connected.
+
+        Parameters
+        ----------
+        sA : array-like
+            The adjacency matrix of the CTLN.
+
+        Returns
+        -------
+        A list of the form (is_weakly_connected, is_strongly_connected)
+        """
+        sA = cls._check_adjacency(sA)
+        return [cls.is_weakly_connected(sA), cls.is_strongly_connected(sA)]
+
+    @classmethod
+    def is_strongly_core(cls, sA):
+        """A method for determining if a CTLN is strongly core.
+
+        A CTLN is strongly core if it is both a core motif and each of
+        it's subgraphs that are not fixed point supports (all but the
+        largest) are ruled out by some form of graphical domination.
+
+        Parameters
+        ----------
+        sA : array-like
+            The adjacency matrix of the CTLN.
+
+        Returns
+        -------
+        True if the CTLN is strongly core, False otherwise.
+        """
+
+        # Validates and converts the given adjacency matrix
+        sA = cls._check_adjacency(sA)
+
+        # Let n be the size of the ctln (number of rows/columns in W,
+        # number of neurons, etc.)
+        n = sA.shape[0]
+
+        # If it is not core, we can safely say it is not strongly core
+        if not CTLN.is_core(sA):
+            return False
+
+        # If there are domination relationships for each sigma other
+        # than the maximal one, return True. Otherwise return False
+        if len(
+                np.unique([a for b in cls.find_domination(sA)[2] for a
+                          in b])
+        ) != len(
+            [x for y in [list(combinations(list(range(n)),i+1)) for i in
+                         range(n)] for x in y])-1:
+            return True
+        else:
+            return False
+
+        #TODO: Needs more proper testing :(
+
+# ──────────────────────── To-do By v0.1.1 ─────────────────────────
+
+# TODO: Gray scale and phase space projection stuff for
+#  run_ctln_model_script (Actually going to move this to v0.1.1 since
+#  there is a high probability of me screwing this up and wanting to
+#  roll back lol)
 
 # ─────────────────────── Caitlyn's Wishlist ───────────────────────
 
-# TODO: run_ctln_model_script (partially complete)
-# TODO: is_strongly_core (core and every proper subset is ruled out by
-#       graphical domination)
 # TODO: is_cyc_union
 # TODO: is_clique_union
 # TODO: is_connected_union
 # TODO: is_composite_graph (?)
-# TODO: find/check domination
 # TODO: reduce graph (using domination)
 # TODO: identify directional cycle covers and weakly directional covers
 # TODO: identify simply-embedded partitions
@@ -899,12 +1261,13 @@ if __name__ == '__main__':
 # TODO: identify/construct circulant graphs (with their notation I assume)
 # TODO: find hamiltonian cycles/is_hamiltonian
 # TODO: all_cycles function (not on her list but I'm adding it)
-# TODO: is_connected
-# TODO: is_strongly_connected
 # TODO: identify firing sequence from ode solution
 # TODO: construct graphs (cycles, composite, circulant, etc.)
 
 # TODO: Look for more functionality to add! (After the rest lol)
 #       (Can also check the ctln github to see if theres stuff there)
 
-# TODO: finalize readme and make the docs on github
+# TODO: Random size n graph generator
+#  (also not from caitlyn, but I want it)
+
+# TODO: Expand the documentation/wiki on github
