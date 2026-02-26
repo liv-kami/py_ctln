@@ -54,6 +54,48 @@ class _KnownNetworks:
         with path_ref.open('rb') as f:
             return pickle.load(f)
 
+    @staticmethod
+    def _convert_mat_to_pkl(mat_path: str, save_name: str, mat_part: str =
+    'sAcell'):
+        """Converts a given existing .mat file to a pkl file for
+        implementing as a known network in the package. Saves the
+        resulting pkl file to the data folder to be included in the
+        subsequent release. Not intended for use beyond being helpful
+        for the maintenance and development of this package.
+
+        When we had all of our code in MatLab, our lists of different
+        CTLNs were stored in .mat files which are pretty inconvenient to
+        use in python, especially if we want to have them included with a
+        package like we do here. So, this method assists in converting
+        those old files into the pkl format for including in the package.
+
+        Parameters
+        ----------
+        mat_path : string
+            The file path to where the .mat file is currently stored.
+        save_name : string
+            The name of the file to save the pkl file to. Do *not*
+            include the file extension .pkl, it is added automatically.
+        mat_part : string
+            The name of the "part" of the mat file to be read as the
+            list of matrices. This is typically 'sAcell' for the files I
+            have seen us use, but the option to change it is given here
+            in case that is not always true. (Defaults to 'sAcell')
+        """
+
+        # Imports the necessary function for loading .mat files in
+        # python from scipy
+        from scipy.io import loadmat
+
+        # Grabs the list of matrices from the .mat file and converts it
+        # into the format we need for python to use them efficiently
+        mats = list(loadmat(mat_path).get(mat_part).flatten())
+
+        # Saves the newly formatted list to a .pkl file in the data
+        # folder to be included in the package distribution.
+        with open(f'known_network_data/{save_name}.pkl', 'wb') as f:
+            pickle.dump(mats, f)
+
     @classmethod
     def all_n(cls, n):
         """A method for obtaining a list of all CTLNs with n nodes.
@@ -99,48 +141,6 @@ class _KnownNetworks:
             raise ValueError(f'Sorry, we do not yet have the list you '
                              f'requested: core_{n})')
         return cls._load_data(path_ref)
-
-    @staticmethod
-    def _convert_mat_to_pkl(mat_path: str, save_name: str, mat_part: str =
-    'sAcell'):
-        """Converts a given existing .mat file to a pkl file for
-        implementing as a known network in the package. Saves the
-        resulting pkl file to the data folder to be included in the
-        subsequent release. Not intended for use beyond being helpful
-        for the maintenance and development of this package.
-
-        When we had all of our code in MatLab, our lists of different
-        CTLNs were stored in .mat files which are pretty inconvenient to
-        use in python, especially if we want to have them included with a
-        package like we do here. So, this method assists in converting
-        those old files into the pkl format for including in the package.
-
-        Parameters
-        ----------
-        mat_path : string
-            The file path to where the .mat file is currently stored.
-        save_name : string
-            The name of the file to save the pkl file to. Do *not*
-            include the file extension .pkl, it is added automatically.
-        mat_part : string
-            The name of the "part" of the mat file to be read as the
-            list of matrices. This is typically 'sAcell' for the files I
-            have seen us use, but the option to change it is given here
-            in case that is not always true. (Defaults to 'sAcell')
-        """
-
-        # Imports the necessary function for loading .mat files in
-        # python from scipy
-        from scipy.io import loadmat
-
-        # Grabs the list of matrices from the .mat file and converts it
-        # into the format we need for python to use them efficiently
-        mats = list(loadmat(mat_path).get(mat_part).flatten())
-
-        # Saves the newly formatted list to a .pkl file in the data
-        # folder to be included in the package distribution.
-        with open(f'known_network_data/{save_name}.pkl', 'wb') as f:
-            pickle.dump(mats, f)
 
     # TODO: Create the ones we have
 
@@ -981,17 +981,11 @@ class CTLN:
 
 # ─────────────── Livs Testing (to Be Removed Later) ───────────────
 
-def build_pkls(mat_path: str, save_name: str):
-    from scipy.io import loadmat
-    mats = list(loadmat(mat_path).get('sAcell').flatten())
-    with open(f'known_network_data/{save_name}.pkl', 'wb') as f:
-        pickle.dump(mats, f)
-
-
 if __name__ == '__main__':
-    build_pkls('known_network_data/n5_digraphs.mat')
-    # t = CTLN.collections.all_n(3)
-    # print([CTLN.is_core(a) for a in t])
+    _KnownNetworks._convert_mat_to_pkl(
+        'known_network_data/n2_digraphs.mat',
+        'all_2'
+    )
 
 # ─────────────────────── Caitlyn's Wishlist ───────────────────────
 
