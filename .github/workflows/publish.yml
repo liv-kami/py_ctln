@@ -17,19 +17,18 @@ jobs:
       id-token: write # IMPORTANT: this permission is mandatory for trusted publishing
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v5
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v6
       with:
         python-version: '3.10'
         cache: 'pip'
     - name: Install dependencies
       run: |
-        python3 -m pip install --upgrade pip 
-        python3 -m pip install --user pipx
-        python3 -m pipx ensurepath
-        pipx install hatch
+        pip install --upgrade pip
+        pip install --upgrade hatch
+        hatch --version # Verify that Hatch is installed
     - name: Build package
       run: hatch build
     - name: Publish package distributions to PyPI
-      uses: pypa/gh-action-pypi-publish@release/v1
+      uses: pypa/gh-action-pypi-publish@v1.13.0
