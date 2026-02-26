@@ -8,6 +8,7 @@
 [Usage](#usage)\
 [!!! Important Usage Note !!!](#-important-note-)\
 [Resources, References, and Background](#resources-references-and-background)\
+[Contributing](#contributing)\
 [Acknowledgements](#acknowledgements)
 
 
@@ -107,6 +108,21 @@ as well as any code snippets, referenced topics, etc. that we may want to call b
 Beyond references, if you are looking for more information on CTLNs, how they work, and the mathematical foundations at play here,
 please see the wiki/docs page [here](https://github.com/liv-kami/py_ctln/wiki) where you can find more in depth explanations and
 resources on the topic.
+
+## Contributing
+Think you have some good ideas to make the package better? Be they optimizations, new features, or something entirely different,
+we want to hear about them! Feel free to fork the repository and make your own edits. We'll review pull requests as best we
+can given our availability. Please do not take it personally if any of your edits are rejected for merging into the package.
+
+As far as guidelines for contribution go, all we ask is that your code is well documented and fits the style of the currently
+existing code. For small changes/edits, maintainers may be willing to reformat things for you but for larger, more substantial,
+or more complex contributions, failure to adhere to the established style may result in an automatic denial of the pull request.
+
+Beyond that, in an effort of openness, transparency, and accessibility, this project uses the AGPL-3.0 license 
+(more on that [here](https://github.com/liv-kami/py_ctln?tab=AGPL-3.0-1-ov-file)), which
+does require that any continuation of this work adheres to this same license that requires freely accessibly source code,
+well documented changes, etc. Please keep this in mind if you plan to contribute to or build upon this code base in any way.
+
 
 ## Acknowledgements
 
