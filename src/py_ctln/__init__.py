@@ -1,7 +1,7 @@
 # ─────────────────────────── Libraries ────────────────────────────
 
 import numpy as np
-from itertools import combinations
+from itertools import combinations, permutations
 from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
@@ -983,6 +983,139 @@ class CTLN:
         # permitted motif.
         return is_permitted
 
+    @classmethod
+    def find_domination(
+            cls,
+            sA,
+            types_to_look_for=(
+                'inside-in',
+                'outside-in',
+                'inside-out',
+                'outside-out'
+            )
+    ):
+        '''A method for finding domination relationships within a CTLN.
+
+        This is specific to *graphical* domination. This is defined such
+        that:
+
+        a node k "graphically dominates" a node j with respect to a
+        subgraph sigma in G if
+        1. For all i in sigma excluding j and k, if i -> j then i -> k
+        2. If j in sigma, then j -> k
+        3. If k in sigma, then k -/> j
+
+        For determining the type of domination, the following rules hold:
+        if j and k are in sigma: inside-in
+        if j is in sigma but k is not: outside-in
+        if k is in sigma but j is not: inside-out
+        if j and k are not in sigma: outside-out
+
+        Parameters
+        ----------
+        sA : array-like
+            The adjacency matrix of the CTLN.
+        types_to_look_for : array-list, optional
+            A list of the "types" of domination to look for. (Defaults
+            to all possible types, but exists as an option in case user
+            wants to ignore certain types of domination)
+
+        Returns
+        -------
+        all_k : array-like
+            A list of all the dominator nodes
+        all_j
+            A list of all the dominated nodes
+        all_sigma
+            A list of the sigmas that each k dominates j with respect to
+        all_dom_type
+            A list of the type of domination found for each domination
+            relationship we have
+        '''
+
+        # Validate and convert the given adjacency matrix
+        sA = cls._check_adjacency(sA)
+
+        # Let n be the size of the ctln (number of rows/columns in W,
+        # number of neurons, etc.)
+        n = sA.shape[0]
+
+        # Create empty lists to store results in
+        all_k=[]
+        all_j=[]
+        all_sigma=[]
+        all_dom_type=[]
+
+        # For each sized subgraph...
+        # (collections of 1,2,...,n nodes respectively)
+        for i in range(n):
+            # Get all possible combinations of nodes
+            # (all possible subgraphs with that many nodes)
+            subgraphs = list(combinations(list(range(n)), i + 1))
+
+            # For each sub graph...
+            for l in range(len(subgraphs)):
+                sigma = np.array(subgraphs[l])
+
+                # Get all pairs of nodes to check if one dominates the
+                # other
+                j_k_pairs = list(permutations(list(range(n)), 2))
+
+                # for each j-k pair
+                for j,k in j_k_pairs:
+
+                    # Get all of the nodes in sigma other than j or k to
+                    # check the first condition
+                    sig_no_j_k = np.setdiff1d(sigma,[j,k]).flatten()
+
+                    # If j and k are the same node, just move on (cannot
+                    # dominate yourself)
+                    if j == k:
+                        continue
+
+                    # If any of those i nodes send to j but not to k,
+                    # no domination, move on.
+                    # (fails 1st condition)
+                    if np.any([sA[k,eye]==0 for eye in sig_no_j_k
+                                if sA[j,eye]==1]):
+                        continue
+
+                    # If j is in sigma but does not send to k, move on
+                    # (fails 2nd condition)
+                    if j in sigma and sA[k,j]==0:
+                        continue
+
+                    # If k is in sigma and *does* send to j, move on
+                    # (fails 3rd condition)
+                    if k in sigma and sA[j,k]==1:
+                        continue # if k in sigma, k must NOT send to j
+
+                    # If we reach this point, we know that k dominates j
+                    # with respect to sigma
+
+                    # Sets the domination type using the rules by
+                    # whether j or k are in sigma
+                    dom_type = None
+                    if j in sigma and k in sigma: dom_type = \
+                        'inside-in'
+                    elif j in sigma and k not in sigma: dom_type = \
+                        'outside-in'
+                    elif k in sigma and j not in sigma: dom_type = \
+                        'inside-out'
+                    elif j not in sigma and k not in sigma: dom_type = \
+                        'outside-out'
+
+                    # If the domination type we found is one we want to
+                    # store (per user input), add the results to the
+                    # lists we made earlier
+                    if dom_type in types_to_look_for:
+                        all_k.append(k+1)
+                        all_j.append(j+1)
+                        all_sigma.append(sigma+1)
+                        all_dom_type.append(dom_type)
+
+        # Return the completed lists
+        return [all_k, all_j, all_sigma, all_dom_type]
 
 # ─────────────── Livs Testing (to Be Removed Later) ───────────────
 
@@ -999,7 +1132,6 @@ if __name__ == '__main__':
 # TODO: is_clique_union
 # TODO: is_connected_union
 # TODO: is_composite_graph (?)
-# TODO: find/check domination
 # TODO: reduce graph (using domination)
 # TODO: identify directional cycle covers and weakly directional covers
 # TODO: identify simply-embedded partitions
@@ -1014,9 +1146,6 @@ if __name__ == '__main__':
 
 # TODO: Look for more functionality to add! (After the rest lol)
 #       (Can also check the ctln github to see if theres stuff there)
-
-# TODO: Ensure we mention our matrices being transposed when doing
-#  documentation and whatnot on github, etc.
 
 # TODO: Random size n graph generator
 #  (also not from caitlyn, but I want it)
