@@ -13,4 +13,4 @@ from py_ctln import CTLN
 ```
 
 ## Docs
-Blah blah blah (maybe an html file? We'll see...)
+Looking for documentation? You can find our docs on the "Wiki" tab of this github repo (also located [here](https://github.com/liv-kami/py_ctln/wiki))
