@@ -1239,18 +1239,14 @@ class CTLN:
         else:
             return False
 
-
         #TODO: Needs more proper testing :(
 
-# ──────────────────────── To-do By v0.1.0 ─────────────────────────
+# ──────────────────────── To-do By v0.1.1 ─────────────────────────
 
-t = [[0,0,1],[1,0,0],[0,1,0]]
-print((CTLN.is_strongly_core(t)))
-
-# Gonna move the ones I think are most important/easiest to implement so
-# we'll guarantee those are completed for 0.1.0
-
-# TODO: run_ctln_model_script (partially complete)
+# TODO: Gray scale and phase space projection stuff for
+#  run_ctln_model_script (Actually going to move this to v0.1.1 since
+#  there is a high probability of me screwing this up and wanting to
+#  roll back lol)
 
 # ─────────────────────── Caitlyn's Wishlist ───────────────────────
 
