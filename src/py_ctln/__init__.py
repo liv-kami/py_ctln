@@ -1117,17 +1117,54 @@ class CTLN:
         # Return the completed lists
         return [all_k, all_j, all_sigma, all_dom_type]
 
-# ─────────────── Livs Testing (to Be Removed Later) ───────────────
+    @classmethod
+    def is_strongly_connected(cls,sA):
+        '''A method for determining if a CTLN is strongly connected.
 
-if __name__ == '__main__':
+        The easiest way to find if a digraph is strongly connected is to
+        use its reachability matrix. This is computed as (sA + I)^n
 
-    pass
+        If this matrix has all positive entries (including the
+        diagonal), then the digraph is strongly connected.
 
-# ─────────────────────── Caitlyn's Wishlist ───────────────────────
+        Parameters
+        ----------
+        sA : array-like
+            The adjacency matrix of the CTLN.
+
+        Returns
+        -------
+        True if the CTLN is strongly connected, False otherwise.
+        '''
+
+        # Validates and converts the given adjacency matrix
+        sA = cls._check_adjacency(sA)
+
+        # Let n be the size of the ctln (number of rows/columns in W,
+        # number of neurons, etc.)
+        n = sA.shape[0]
+
+        # Calculates the reachability matrix (sA-I)^n
+        M = np.linalg.matrix_power((sA + np.eye(n)),n)
+
+        # Returns true if the reachability matrix is all positive.
+        return np.all(M > 0)
+
+# ──────────────────────── To-do By v0.1.0 ─────────────────────────
+
+t = [[0,0,1],[1,0,0],[0,1,0]]
+print(CTLN.is_strongly_connected(t))
+
+# Gonna move the ones I think are most important/easiest to implement so
+# we'll guarantee those are completed for 0.1.0
 
 # TODO: run_ctln_model_script (partially complete)
 # TODO: is_strongly_core (core and every proper subset is ruled out by
 #       graphical domination)
+# TODO: is_connected
+
+# ─────────────────────── Caitlyn's Wishlist ───────────────────────
+
 # TODO: is_cyc_union
 # TODO: is_clique_union
 # TODO: is_connected_union
@@ -1139,8 +1176,6 @@ if __name__ == '__main__':
 # TODO: identify/construct circulant graphs (with their notation I assume)
 # TODO: find hamiltonian cycles/is_hamiltonian
 # TODO: all_cycles function (not on her list but I'm adding it)
-# TODO: is_connected
-# TODO: is_strongly_connected
 # TODO: identify firing sequence from ode solution
 # TODO: construct graphs (cycles, composite, circulant, etc.)
 
