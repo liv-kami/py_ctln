@@ -202,9 +202,19 @@ class CTLN:
         A method for determining if a CTLN is a core motif.
     is_permitted(sA)
         A method for determining if a CTLN is a permitted motif.
+    find_graphical_domination(sA,types_to_look_for)
+        A method for finding graphical domination relationships within a
+        CTLN
+    is_strongly_connected(sA)
+        A method for determining if a CTLN is strongly connected.
+    is_weakly_connected(sA)
+        A method for determining if a CTLN is weakly connected.
+    is_connected(sA)
+        A method for determining if a CTLN is connected (weakly or
+        strongly).
+    is_strongly_core(sA)
+        A method for determining if a CTLN is *strongly* core motif.
     """
-
-    #TODO: add new methods to docs here
 
     epsilon: float = 0.25
     delta: float = 0.5
@@ -986,7 +996,7 @@ class CTLN:
         return is_permitted
 
     @classmethod
-    def find_domination(
+    def find_graphical_domination(
             cls,
             sA,
             types_to_look_for=(
@@ -1232,7 +1242,8 @@ class CTLN:
         # If there are domination relationships for each sigma other
         # than the maximal one, return True. Otherwise return False
         if len(
-                np.unique([a for b in cls.find_domination(sA)[2] for a
+                np.unique([a for b in cls.find_graphical_domination(sA)[2]
+                           for a
                           in b])
         ) != len(
             [x for y in [list(combinations(list(range(n)),i+1)) for i in
