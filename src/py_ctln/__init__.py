@@ -204,6 +204,8 @@ class CTLN:
         A method for determining if a CTLN is a permitted motif.
     """
 
+    #TODO: add new methods to docs here
+
     epsilon: float = 0.25
     delta: float = 0.5
 
