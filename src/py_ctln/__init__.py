@@ -321,6 +321,7 @@ class CTLN:
         # Sets the parameter values from the given epsilon and delta
         cls.epsilon = epsilon
         cls.delta = delta
+        #TODO: Add check for epsilon delta allowed values
 
     @classmethod
     def get_w_mat(cls, sA):
