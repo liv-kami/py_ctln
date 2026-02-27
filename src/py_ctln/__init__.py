@@ -318,10 +318,14 @@ class CTLN:
             The value to use for the delta parameter (default is 0.5).
         """
 
+        if not delta > 0 : raise ValueError('Delta must be greater than 0')
+        if not (epsilon > 0 and epsilon < (delta/(delta+1))):
+            raise ValueError('Epsilon must be positive and less than ('
+                             'delta/(delta+1))')
+
         # Sets the parameter values from the given epsilon and delta
         cls.epsilon = epsilon
         cls.delta = delta
-        #TODO: Add check for epsilon delta allowed values
 
     @classmethod
     def get_w_mat(cls, sA):
