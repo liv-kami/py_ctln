@@ -10,7 +10,6 @@ import pickle
 from importlib.resources import files
 from pathlib import Path
 
-
 # ────────────────────── Known Networks Class ──────────────────────
 
 class _KnownNetworks:
@@ -155,9 +154,9 @@ class CTLN:
     Attributes
     ----------
     epsilon : float, optional
-        The value to use for the epsilon parameter (default is 0.25).
+        The value to use for the epsilon parameter (default is 0.51).
     delta : float, optional
-        The value to use for the delta parameter (default is 0.5).
+        The value to use for the delta parameter (default is 1.76).
     collections : _KnownNetworks
         A pointer for accessing collections of known CTLNs.
 
@@ -216,8 +215,8 @@ class CTLN:
         A method for determining if a CTLN is *strongly* core motif.
     """
 
-    epsilon: float = 0.25
-    delta: float = 0.5
+    epsilon: float = 0.51
+    delta: float = 1.76
 
     collections = _KnownNetworks()
 
@@ -306,16 +305,16 @@ class CTLN:
         return sA
 
     @classmethod
-    def set_params(cls, epsilon: float = 0.25, delta: float = 0.5):
+    def set_params(cls, epsilon: float = 0.51, delta: float = 1.76):
         """Allows the user to define the values for the parameters
         epsilon and delta
 
         Parameters
         ----------
         epsilon : float, optional
-            The value to use for the epsilon parameter (default is 0.25).
+            The value to use for the epsilon parameter (default is 0.51).
         delta : float, optional
-            The value to use for the delta parameter (default is 0.5).
+            The value to use for the delta parameter (default is 1.76).
         """
 
         if not delta > 0 : raise ValueError('Delta must be greater than 0')
