@@ -317,6 +317,7 @@ class CTLN:
             The value to use for the delta parameter (default is 1.76).
         """
 
+        # Checks that Delta and Epsilon are in their legal ranges
         if not delta > 0 : raise ValueError('Delta must be greater than 0')
         if not (epsilon > 0 and epsilon < (delta/(delta+1))):
             raise ValueError('Epsilon must be positive and less than ('
