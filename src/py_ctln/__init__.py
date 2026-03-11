@@ -10,7 +10,6 @@ import pickle
 from importlib.resources import files
 from pathlib import Path
 
-
 # ────────────────────── Known Networks Class ──────────────────────
 
 class _KnownNetworks:
@@ -155,9 +154,9 @@ class CTLN:
     Attributes
     ----------
     epsilon : float, optional
-        The value to use for the epsilon parameter (default is 0.25).
+        The value to use for the epsilon parameter (default is 0.51).
     delta : float, optional
-        The value to use for the delta parameter (default is 0.5).
+        The value to use for the delta parameter (default is 1.76).
     collections : _KnownNetworks
         A pointer for accessing collections of known CTLNs.
 
@@ -202,10 +201,22 @@ class CTLN:
         A method for determining if a CTLN is a core motif.
     is_permitted(sA)
         A method for determining if a CTLN is a permitted motif.
+    find_graphical_domination(sA,types_to_look_for)
+        A method for finding graphical domination relationships within a
+        CTLN
+    is_strongly_connected(sA)
+        A method for determining if a CTLN is strongly connected.
+    is_weakly_connected(sA)
+        A method for determining if a CTLN is weakly connected.
+    is_connected(sA)
+        A method for determining if a CTLN is connected (weakly or
+        strongly).
+    is_strongly_core(sA)
+        A method for determining if a CTLN is *strongly* core motif.
     """
 
-    epsilon: float = 0.25
-    delta: float = 0.5
+    epsilon: float = 0.51
+    delta: float = 1.76
 
     collections = _KnownNetworks()
 
@@ -294,17 +305,23 @@ class CTLN:
         return sA
 
     @classmethod
-    def set_params(cls, epsilon: float = 0.25, delta: float = 0.5):
+    def set_params(cls, epsilon: float = 0.51, delta: float = 1.76):
         """Allows the user to define the values for the parameters
         epsilon and delta
 
         Parameters
         ----------
         epsilon : float, optional
-            The value to use for the epsilon parameter (default is 0.25).
+            The value to use for the epsilon parameter (default is 0.51).
         delta : float, optional
-            The value to use for the delta parameter (default is 0.5).
+            The value to use for the delta parameter (default is 1.76).
         """
+
+        # Checks that Delta and Epsilon are in their legal ranges
+        if not delta > 0 : raise ValueError('Delta must be greater than 0')
+        if not (epsilon > 0 and epsilon < (delta/(delta+1))):
+            raise ValueError('Epsilon must be positive and less than ('
+                             'delta/(delta+1))')
 
         # Sets the parameter values from the given epsilon and delta
         cls.epsilon = epsilon
@@ -984,7 +1001,7 @@ class CTLN:
         return is_permitted
 
     @classmethod
-    def find_domination(
+    def find_graphical_domination(
             cls,
             sA,
             types_to_look_for=(
@@ -1230,7 +1247,8 @@ class CTLN:
         # If there are domination relationships for each sigma other
         # than the maximal one, return True. Otherwise return False
         if len(
-                np.unique([a for b in cls.find_domination(sA)[2] for a
+                np.unique([a for b in cls.find_graphical_domination(sA)[2]
+                           for a
                           in b])
         ) != len(
             [x for y in [list(combinations(list(range(n)),i+1)) for i in
