@@ -4,10 +4,6 @@ from src.py_ctln import CTLN
 
 # ─────────────────────────── The Tests ────────────────────────────
 
-#TODO: Create testing functions
-
-#TODO: add testing to workflow on github (add hatch test)
-
 def test_set_params():
     CTLN.set_params(epsilon=0.26,delta=0.51)
     assert CTLN.epsilon == 0.26
@@ -95,5 +91,3 @@ def test_weakly_connected():
 
 def test_strongly_core():
     pass
-
-#TODO: Finish the testing functions

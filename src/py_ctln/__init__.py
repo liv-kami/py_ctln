@@ -141,8 +141,6 @@ class _KnownNetworks:
                              f'requested: core_n({n})')
         return cls._load_data(path_ref)
 
-    # TODO: Add more types/classes of CTLNs we can have lists of!
-
 # ──────────────────────── Main Ctln Funcs ─────────────────────────
 
 class CTLN:
@@ -745,12 +743,6 @@ class CTLN:
         else:
             x0 = (np.zeros((1,n)) + (0.01 * np.random.uniform(
                 size=n))).flatten().tolist()
-            # TODO: check the x0 generation - it is the uniform random
-            #  stuff but it seems to always be really high which seems
-            #  sketch to me
-            #  could be related to the y axis scaling but I
-            #  feel like it should not *always* start higher than it
-            #  ends up...
 
         # Allow b to be user defined, otherwise default to a column of
         # 1s multiplied by theta
@@ -880,8 +872,6 @@ class CTLN:
 
         # Displays the figure
         plt.show()
-        # TODO: look into adding the other windows for this script
-        #   (projection and bars thing)
 
     # Alias for plot_soln that was used in prior code. Continued here
     # for ease of use.
@@ -1256,36 +1246,3 @@ class CTLN:
             return True
         else:
             return False
-
-        #TODO: Needs more proper testing :(
-
-# ──────────────────────── To-do By v0.1.1 ─────────────────────────
-
-# TODO: Gray scale and phase space projection stuff for
-#  run_ctln_model_script (Actually going to move this to v0.1.1 since
-#  there is a high probability of me screwing this up and wanting to
-#  roll back lol)
-
-# ─────────────────────── Caitlyn's Wishlist ───────────────────────
-
-# TODO: is_cyc_union
-# TODO: is_clique_union
-# TODO: is_connected_union
-# TODO: is_composite_graph (?)
-# TODO: reduce graph (using domination)
-# TODO: identify directional cycle covers and weakly directional covers
-# TODO: identify simply-embedded partitions
-# TODO: identify strong simply-embedded partitions
-# TODO: identify/construct circulant graphs (with their notation I assume)
-# TODO: find hamiltonian cycles/is_hamiltonian
-# TODO: all_cycles function (not on her list but I'm adding it)
-# TODO: identify firing sequence from ode solution
-# TODO: construct graphs (cycles, composite, circulant, etc.)
-
-# TODO: Look for more functionality to add! (After the rest lol)
-#       (Can also check the ctln github to see if theres stuff there)
-
-# TODO: Random size n graph generator
-#  (also not from caitlyn, but I want it)
-
-# TODO: Expand the documentation/wiki on github
