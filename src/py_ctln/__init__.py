@@ -178,11 +178,19 @@ class _KnownNetworks:
             A list of adjacency matrices.
         """
         collection = []
-        with path.open('rb') as f:
-            for line in f:
-                if not line: continue
-                collection.append(cls._d6_to_mat(line.strip()))
-        return collection
+
+        if isinstance(path, str):
+            with open(path, 'rb') as f:
+                for line in f:
+                    if not line: continue
+                    collection.append(cls._d6_to_mat(line.strip()))
+            return collection
+        else:
+            with path.open('rb') as f:
+                for line in f:
+                    if not line: continue
+                    collection.append(cls._d6_to_mat(line.strip()))
+            return collection
 
     @classmethod
     def _read_d6_file_generator(cls, path):
@@ -198,10 +206,16 @@ class _KnownNetworks:
         -------
         Yields adjacency matrices.
         """
-        with path.open('rb') as f:
-            for line in f:
-                if not line: continue
-                yield cls._d6_to_mat(line.strip())
+        if isinstance(path, str):
+            with open(path, 'rb') as f:
+                for line in f:
+                    if not line: continue
+                    yield cls._d6_to_mat(line.strip())
+        else:
+            with path.open('rb') as f:
+                for line in f:
+                    if not line: continue
+                    yield cls._d6_to_mat(line.strip())
 
     @staticmethod
     def _load_data(path_ref):
