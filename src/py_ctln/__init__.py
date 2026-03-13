@@ -24,6 +24,18 @@ class _KnownNetworks:
 
     Methods
     -------
+    _mat_to_d6(sA)
+        Not intended for use by the end user. This handles the
+        conversion of an adjacency matrix to a d6 byte string.
+    _mats_to_d6(cls, sAlist, save_to)
+        Not intended for use by the end user. This handles converting a
+        list of adjacency matrices to d6 byte strings.
+    _d6_to_mat(ds)
+        Not intended for use by the end user. This handles converting a
+        d6 byte string to an adjacency matrix.
+    _read_d6_file(cls, path)
+        Not intended for use by the end user. This handles reading a
+        list of adjacency matrices from a d6 file.
     _load_data(path_ref)
         Not intended for use by the end user. This handles the loading of
         the pkl files and returns the list for the user
