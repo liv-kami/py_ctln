@@ -631,7 +631,7 @@ class CTLN:
 
         # Declares the sigma to be *not* a fixed point if any of the
         # neurons in sigma (x_fp[sig,:]) are not "on" or "active" (<=0)
-        if any(x_fp[sig, :] <= 0):
+        if any(x_fp[sig, :] <= 5e-3):
             is_fp = False
 
         # Checks that neurons *outside* of the sigma are *not* "on" or
@@ -650,7 +650,7 @@ class CTLN:
                 # If any node outside of sigma has a positive firing
                 # rate (and is thus "active" or "on"), declare sigma
                 # *not* a fixed point support
-                if sk[0] > 0:
+                if sk[0] > 5e-3:
                     is_fp = False
                     break
 
