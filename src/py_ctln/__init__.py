@@ -24,6 +24,18 @@ class _KnownNetworks:
 
     Methods
     -------
+    _mat_to_d6(sA)
+        Not intended for use by the end user. This handles the
+        conversion of an adjacency matrix to a d6 byte string.
+    _mats_to_d6(cls, sAlist, save_to)
+        Not intended for use by the end user. This handles converting a
+        list of adjacency matrices to d6 byte strings.
+    _d6_to_mat(ds)
+        Not intended for use by the end user. This handles converting a
+        d6 byte string to an adjacency matrix.
+    _read_d6_file(cls, path)
+        Not intended for use by the end user. This handles reading a
+        list of adjacency matrices from a d6 file.
     _load_data(path_ref)
         Not intended for use by the end user. This handles the loading of
         the pkl files and returns the list for the user
@@ -35,6 +47,175 @@ class _KnownNetworks:
     core_n(n)
         Returns a list of all CTLNs with n nodes that are *core motifs*.
     """
+
+    @staticmethod
+    def _mat_to_d6(sA):
+        """A method to convert an adjacency matrix to a d6 byte string.
+
+        Parameters
+        ----------
+        sA : array-like
+            The adjacency matrix as a numpy array.
+
+        Returns
+        -------
+            The byte string of the adjacecny matrix in d6 format.
+        """
+        # get size of matrix and create bytes
+        n = sA.shape[0]
+        res = bytearray(b'&')
+
+        # Encodes N(n) for size of graph
+        if n <= 62:
+            res.append(n + 63)
+        elif n <= 258047:
+            res.append(126)
+            res.append((n >> 12) + 63)
+            res.append(((n >> 6) & 63) + 63)
+            res.append((n & 63) + 63)
+        else:
+            res.extend([126, 126])
+            res.append((n >> 30) + 63)
+            res.append(((n >> 24) & 63) + 63)
+            res.append(((n >> 18) & 63) + 63)
+            res.append(((n >> 12) & 63) + 63)
+            res.append(((n >> 6) & 63) + 63)
+            res.append((n & 63) + 63)
+
+        # Get bits from matrix
+        bits = []
+        for row in sA:
+            bits.extend(row)
+
+        # Pad with zeros to make multiple of 6 as required by d6 format
+        while len(bits) % 6 != 0:
+            bits.append(0)
+
+        # Convert to 6-bit integers and offset by 63 as required by format
+        for i in range(0, len(bits), 6):
+            chunk = bits[i:i + 6]
+            val = 0
+            for bit in chunk:
+                val = (val << 1) | bit
+            res.append(val + 63)
+
+        # return the results
+        return bytes(res)
+
+    @classmethod
+    def _mats_to_d6(cls, sAlist:list, save_to:str):
+        """A method that converts a list of adjacency matrices to a d6
+        file.
+
+        Parameters
+        ----------
+        sAlist : array-like
+            A list of adjacency matrices.
+        save_to : string
+            A path to save the d6 file to.
+        """
+        with open(save_to, 'wb') as f:
+            for sA in sAlist:
+                f.write(cls._mat_to_d6(sA) + b'\n')
+
+    @staticmethod
+    def _d6_to_mat(ds:bytes):
+        """A function for reading an .d6 file.
+
+        Parameters
+        ----------
+        ds : string
+            A string of the .d6 file in the proper format
+
+        Returns
+        -------
+        matrix : array-like
+            The adjacency matrix from the .d6 string.
+        """
+
+        # Check it starts with & as it should
+        if not ds.startswith(b'&'):
+            raise ValueError(
+                "Invalid d6 format: string must start with '&'")
+
+        # get rid of the &
+        s = [b - 63 for b in ds[1:]]
+
+        # Handles the N(n) part of the d6 format
+        if s[0] < 63:
+            n = s[0]
+            s = s[1:]
+        elif s[1] < 63:
+            n = (s[1] << 12) + (s[2] << 6) + s[3]
+            s = s[4:]
+        else:
+            n = (s[2] << 30) + (s[3] << 24) + (s[4] << 18) + \
+                (s[5] << 12) + (s[6] << 6) + s[7]
+            s = s[8:]
+
+        # Handles getting the bits for the adj mat.
+        bits = []
+        for val in s:
+            for i in range(5, -1, -1):
+                bits.append((val >> i) & 1)
+
+        # Construct the resulting adjacency matrix and return it
+        return [bits[i*n : (i+1)*n] for i in range(n)]
+
+    @classmethod
+    def _read_d6_file(cls, path):
+        """A method that reads an .d6 file and converts it to a
+        adjacency matrices.
+
+        Parameters
+        ----------
+        path
+            The file path to the .d6 file.
+
+        Returns
+        -------
+        collection : array-like
+            A list of adjacency matrices.
+        """
+        collection = []
+
+        if isinstance(path, str):
+            with open(path, 'rb') as f:
+                for line in f:
+                    if not line: continue
+                    collection.append(cls._d6_to_mat(line.strip()))
+            return collection
+        else:
+            with path.open('rb') as f:
+                for line in f:
+                    if not line: continue
+                    collection.append(cls._d6_to_mat(line.strip()))
+            return collection
+
+    @classmethod
+    def _read_d6_file_generator(cls, path):
+        """An alternate method for _read_d6_file that works as a
+        generator, useful for larger files and parallelization.
+
+        Parameters
+        ----------
+        path
+            The file path to the .d6 file.
+
+        Returns
+        -------
+        Yields adjacency matrices.
+        """
+        if isinstance(path, str):
+            with open(path, 'rb') as f:
+                for line in f:
+                    if not line: continue
+                    yield cls._d6_to_mat(line.strip())
+        else:
+            with path.open('rb') as f:
+                for line in f:
+                    if not line: continue
+                    yield cls._d6_to_mat(line.strip())
 
     @staticmethod
     def _load_data(path_ref):
@@ -113,12 +294,20 @@ class _KnownNetworks:
         ValueError
             If the requested list cannot be found.
         """
-        path_ref: Path = files("py_ctln.known_network_data") / (
-            f"all_{n}.pkl")
-        if not path_ref.exists():
-            raise ValueError(f'Sorry, we do not yet have the list you '
-                             f'requested: all_n({n})')
-        return cls._load_data(path_ref)
+        if n < 5:
+            path_ref: Path = files("py_ctln.known_network_data") / (
+                f"all_{n}.pkl")
+            if not path_ref.exists():
+                raise ValueError(f'Sorry, we do not yet have the list you '
+                                 f'requested: all_n({n})')
+            return cls._load_data(path_ref)
+        else:
+            path_ref: Path = files("py_ctln.known_network_data") / (
+                f"all_{n}.d6")
+            if not path_ref.exists():
+                raise ValueError(f'Sorry, we do not yet have the list you '
+                                 f'requested: all_n({n})')
+            return cls._read_d6_file(path_ref)
 
     @classmethod
     def core_n(cls, n):
@@ -134,12 +323,20 @@ class _KnownNetworks:
         -------
         Returns the requested list.
         """
-        path_ref: Path = files("py_ctln.known_network_data") / (
-            f"core_{n}.pkl")
-        if not path_ref.exists():
-            raise ValueError(f'Sorry, we do not yet have the list you '
-                             f'requested: core_n({n})')
-        return cls._load_data(path_ref)
+        if n<5:
+            path_ref: Path = files("py_ctln.known_network_data") / (
+                f"core_{n}.pkl")
+            if not path_ref.exists():
+                raise ValueError(f'Sorry, we do not yet have the list you '
+                                 f'requested: core_n({n})')
+            return cls._load_data(path_ref)
+        else:
+            path_ref: Path = files("py_ctln.known_network_data") / (
+                f"core_{n}.d6")
+            if not path_ref.exists():
+                raise ValueError(f'Sorry, we do not yet have the list you '
+                                 f'requested: core_n({n})')
+            return cls._read_d6_file(path_ref)
 
 # ──────────────────────── Main Ctln Funcs ─────────────────────────
 
