@@ -2,6 +2,8 @@
 
 **Disclaimer**: Please note that this package is in its earliest beta phase. Nothing here is finalized whatsoever. Use at your own risk!
 
+Reading this on a site other than github? You can find all of the information you may need on this package at our github repo [here](https://github.com/liv-kami/py_ctln).
+
 ### Navigation Shortcuts:
 [What is py_ctln?](#what-is-py_ctln)\
 [Installation](#installation)\
