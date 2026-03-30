@@ -1496,6 +1496,7 @@ class CTLN:
                     # if it does not, mark that possible cycle as not
                     # appearing in the graph
                     is_a_ham_cycle[i] = False
+                    break
 
         # Grabs the cycles that were found and removes the extra index
         # we added, as well as adding 1 to each index to make it human
