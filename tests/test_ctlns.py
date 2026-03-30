@@ -91,3 +91,27 @@ def test_weakly_connected():
 
 def test_strongly_core():
     pass
+
+def test_is_hamiltonian():
+    a = [
+        [0, 0, 1],
+        [1, 0, 0],
+        [0, 1, 0]
+    ]
+    b = [
+        [0, 1, 1],
+        [1, 0, 1],
+        [1, 1, 0]
+    ]
+    c = [
+        [0, 0, 1],
+        [1, 0, 1],
+        [1, 0, 0]
+    ]
+    assert CTLN.is_hamiltonian(a)[0] == True
+    assert CTLN.is_hamiltonian(b)[0] == True
+    assert CTLN.is_hamiltonian(c)[0] == False
+
+    assert CTLN.is_hamiltonian(a)[1] == [[1,2,3],[2,3,1],[3,1,2]]
+    assert CTLN.is_hamiltonian(b)[1] == [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
+    assert CTLN.is_hamiltonian(c)[1] == []

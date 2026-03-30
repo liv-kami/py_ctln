@@ -408,6 +408,9 @@ class CTLN:
         strongly).
     is_strongly_core(sA)
         A method for determining if a CTLN is *strongly* core motif.
+    is_hamiltonian(sA)
+        A method for determining if a CTLN is hamiltonian (Contains a
+        hamiltonian cycle of size n)
     """
 
     epsilon: float = 0.51
@@ -1444,3 +1447,66 @@ class CTLN:
         else:
             return False
 
+    @classmethod
+    def is_hamiltonian(cls, sA):
+        """A method for determining if a CTLN is hamiltonian
+        (Contains a hamiltonian cycle of size n).
+
+        To do this, we get every possible hamiltonian cycle of size n
+        and check if it is found in the adjacency matrix.
+
+        Parameters
+        ----------
+        sA : array-like
+            The adjacency matrix of the CTLN.
+
+        Returns
+        -------
+        True if the CTLN is hamiltonian, False otherwise.
+
+        ham_cycle : array-like
+            A list of the hamiltonian cycles that were found in the graph.
+        """
+
+        # Validates and converts the adjacency matrix given
+        sA = cls._check_adjacency(sA)
+
+        # Let n be the size of the ctln (number of rows/columns in W,
+        # number of neurons, etc.)
+        n = sA.shape[0]
+
+        # Get a list of the possible size n hamiltonian paths, adding the
+        # starting node to the end to make the paths into cycles
+        orders = list(permutations(list(range(n))))
+        for i,tup in enumerate(orders):
+            orders[i] = tup + (tup[0],)
+
+        # Assume each hamiltonian cycle is present in the given CTLN
+        is_a_ham_cycle = [True]*len(orders)
+
+        # For each possible hamiltonian cycle (to check)
+        for i,cycle_to_check in enumerate(orders):
+            for j in range(n):
+
+                # Check each node in the cycle sends to the next
+                n1 = cycle_to_check[j]
+                n2 = cycle_to_check[j+1]
+                if not sA[n2,n1] == 1:
+
+                    # if it does not, mark that possible cycle as not
+                    # appearing in the graph
+                    is_a_ham_cycle[i] = False
+
+        # Grabs the cycles that were found and removes the extra index
+        # we added, as well as adding 1 to each index to make it human
+        # readable
+        ham_cycles = [
+            [a+1 for a in order][:-1]
+            for i,order
+            in enumerate(orders)
+            if is_a_ham_cycle[i]
+        ]
+
+        # return true if any possible hamiltonian cycle was found in the
+        # given graph and return the list of hamiltonian cycles we found
+        return sum(is_a_ham_cycle) > 0, ham_cycles
