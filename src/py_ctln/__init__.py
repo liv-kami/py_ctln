@@ -517,7 +517,7 @@ class CTLN:
 
         # Checks that Delta and Epsilon are in their legal ranges
         if not delta > 0 : raise ValueError('Delta must be greater than 0')
-        if not (epsilon > 0 and epsilon < (delta/(delta+1))):
+        if not (0 < epsilon < (delta / (delta + 1))):
             raise ValueError('Epsilon must be positive and less than ('
                              'delta/(delta+1))')
 
@@ -634,7 +634,7 @@ class CTLN:
 
         # Declares the sigma to be *not* a fixed point if any of the
         # neurons in sigma (x_fp[sig,:]) are not "on" or "active" (<=0)
-        if any(x_fp[sig, :] <= 1e-2):
+        if any(x_fp[sig, :] <= 0):
             is_fp = False
 
         # Checks that neurons *outside* of the sigma are *not* "on" or
@@ -653,7 +653,7 @@ class CTLN:
                 # If any node outside of sigma has a positive firing
                 # rate (and is thus "active" or "on"), declare sigma
                 # *not* a fixed point support
-                if sk[0] > 1e-2:
+                if sk[0] > 0:
                     is_fp = False
                     break
 
