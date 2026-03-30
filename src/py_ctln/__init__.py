@@ -840,7 +840,7 @@ class CTLN:
             b = np.ones((n, 1))
 
         # Let m be the length of the b vector
-        m = len(b)
+        m = b.shape[1]
 
         # Create empty lists to store the computed (t,y) pairs in parallel
         soln_y = []
@@ -854,15 +854,14 @@ class CTLN:
         def _nonlin(x):
             # Just replaces negative firing rates with zeroes, leaves
             # the rest untouched.
-            to_fix = np.where(x < 0)
             fixed_x = x
-            fixed_x[to_fix] = 0
+            fixed_x[fixed_x < 0] = 0
             return fixed_x
 
         for i in range(m):
             # Builds the differential equations for solving
             def _model(t, x):
-                return -x + _nonlin(W @ x + b[i, :])
+                return -x + _nonlin(np.dot(W,x) + b[i, :])
 
             # Defines the time interval to solve for
             tspan = np.arange(t0, t0 + t + 0.01, 0.01)
@@ -872,22 +871,11 @@ class CTLN:
                 _model,
                 (tspan[0], tspan[-1]),
                 x0,
-                t_eval=tspan
+                t_eval=tspan,
+                method='RK45'
             )
-
-            # Builds the necessary results from the solution above
-            time = sol.t
-            x = sol.y.T
-            with np.errstate(
-                    divide='ignore',
-                    invalid='ignore',
-                    over='ignore'
-            ):
-                y = W @ np.transpose(x) + (
-                    (b @ np.ones((1, len(np.transpose(x)[1]))))
-                )
-            soln_y = y
-            soln_time = time
+            soln_y = sol.y
+            soln_time = sol.t
 
         # Returns the results of the computation
         return [W, b, t, x0, soln_y, soln_time, sA]
