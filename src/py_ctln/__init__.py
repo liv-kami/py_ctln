@@ -408,6 +408,9 @@ class CTLN:
         strongly).
     is_strongly_core(sA)
         A method for determining if a CTLN is *strongly* core motif.
+    is_hamiltonian(sA)
+        A method for determining if a CTLN is hamiltonian (Contains a
+        hamiltonian cycle of size n)
     """
 
     epsilon: float = 0.51
@@ -514,7 +517,7 @@ class CTLN:
 
         # Checks that Delta and Epsilon are in their legal ranges
         if not delta > 0 : raise ValueError('Delta must be greater than 0')
-        if not (epsilon > 0 and epsilon < (delta/(delta+1))):
+        if not (0 < epsilon < (delta / (delta + 1))):
             raise ValueError('Epsilon must be positive and less than ('
                              'delta/(delta+1))')
 
@@ -837,7 +840,7 @@ class CTLN:
             b = np.ones((n, 1))
 
         # Let m be the length of the b vector
-        m = len(b)
+        m = b.shape[1]
 
         # Create empty lists to store the computed (t,y) pairs in parallel
         soln_y = []
@@ -851,15 +854,14 @@ class CTLN:
         def _nonlin(x):
             # Just replaces negative firing rates with zeroes, leaves
             # the rest untouched.
-            to_fix = np.where(x < 0)
             fixed_x = x
-            fixed_x[to_fix] = 0
+            fixed_x[fixed_x < 0] = 0
             return fixed_x
 
         for i in range(m):
             # Builds the differential equations for solving
             def _model(t, x):
-                return -x + _nonlin(W @ x + b[i, :])
+                return -x + _nonlin(np.dot(W,x) + b[i, :])
 
             # Defines the time interval to solve for
             tspan = np.arange(t0, t0 + t + 0.01, 0.01)
@@ -869,22 +871,11 @@ class CTLN:
                 _model,
                 (tspan[0], tspan[-1]),
                 x0,
-                t_eval=tspan
+                t_eval=tspan,
+                method='RK45'
             )
-
-            # Builds the necessary results from the solution above
-            time = sol.t
-            x = sol.y.T
-            with np.errstate(
-                    divide='ignore',
-                    invalid='ignore',
-                    over='ignore'
-            ):
-                y = W @ np.transpose(x) + (
-                    (b @ np.ones((1, len(np.transpose(x)[1]))))
-                )
-            soln_y = y
-            soln_time = time
+            soln_y = sol.y
+            soln_time = sol.t
 
         # Returns the results of the computation
         return [W, b, t, x0, soln_y, soln_time, sA]
@@ -1443,3 +1434,68 @@ class CTLN:
             return True
         else:
             return False
+
+    @classmethod
+    def is_hamiltonian(cls, sA):
+        """A method for determining if a CTLN is hamiltonian
+        (Contains a hamiltonian cycle of size n).
+
+        To do this, we get every possible hamiltonian cycle of size n
+        and check if it is found in the adjacency matrix.
+
+        Parameters
+        ----------
+        sA : array-like
+            The adjacency matrix of the CTLN.
+
+        Returns
+        -------
+        True if the CTLN is hamiltonian, False otherwise.
+
+        ham_cycle : array-like
+            A list of the hamiltonian cycles that were found in the graph.
+        """
+
+        # Validates and converts the adjacency matrix given
+        sA = cls._check_adjacency(sA)
+
+        # Let n be the size of the ctln (number of rows/columns in W,
+        # number of neurons, etc.)
+        n = sA.shape[0]
+
+        # Get a list of the possible size n hamiltonian paths, adding the
+        # starting node to the end to make the paths into cycles
+        orders = list(permutations(list(range(n))))
+        for i,tup in enumerate(orders):
+            orders[i] = tup + (tup[0],)
+
+        # Assume each hamiltonian cycle is present in the given CTLN
+        is_a_ham_cycle = [True]*len(orders)
+
+        # For each possible hamiltonian cycle (to check)
+        for i,cycle_to_check in enumerate(orders):
+            for j in range(n):
+
+                # Check each node in the cycle sends to the next
+                n1 = cycle_to_check[j]
+                n2 = cycle_to_check[j+1]
+                if not sA[n2,n1] == 1:
+
+                    # if it does not, mark that possible cycle as not
+                    # appearing in the graph
+                    is_a_ham_cycle[i] = False
+                    break
+
+        # Grabs the cycles that were found and removes the extra index
+        # we added, as well as adding 1 to each index to make it human
+        # readable
+        ham_cycles = [
+            [a+1 for a in order][:-1]
+            for i,order
+            in enumerate(orders)
+            if is_a_ham_cycle[i]
+        ]
+
+        # return true if any possible hamiltonian cycle was found in the
+        # given graph and return the list of hamiltonian cycles we found
+        return sum(is_a_ham_cycle) > 0, ham_cycles
