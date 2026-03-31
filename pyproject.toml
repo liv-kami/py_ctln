@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "py_ctln"
-version = "0.1.3"
+version = "0.2.1"
 dependencies = [
     "numpy",
     "scipy",
