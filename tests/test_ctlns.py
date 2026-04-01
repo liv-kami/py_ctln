@@ -84,7 +84,9 @@ def test_domination():
     )==6
 
 def test_strongly_connected():
-    pass
+    strongly_core_fives = [a for a in CTLN.collections.core_n(5) if
+                           CTLN.is_strongly_core(a)]
+    assert len(strongly_core_fives) == 11
 
 def test_weakly_connected():
     pass

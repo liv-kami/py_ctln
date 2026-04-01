@@ -1422,18 +1422,26 @@ class CTLN:
         if not CTLN.is_core(sA):
             return False
 
-        # If there are domination relationships for each sigma other
-        # than the maximal one, return True. Otherwise return False
-        if len(
-                np.unique([a for b in cls.find_graphical_domination(sA)[2]
-                           for a
-                          in b])
-        ) != len(
-            [x for y in [list(combinations(list(range(n)),i+1)) for i in
-                         range(n)] for x in y])-1:
-            return True
-        else:
-            return False
+        # Get any domination relationships found
+        all_k, all_j, all_sigma, all_dom_type = (
+            cls.find_graphical_domination(sA)
+        )
+
+        # Filter down to those that are outside-in or inside-in since
+        # these are the ones that 'kill' fixed points
+        all_sigma = [tuple(a) for i,a in enumerate(all_sigma) if
+                     all_dom_type[
+            i] in ['outside-in','inside-in']]
+
+        # Get a list of all possible sigmas
+        pos_sigmas = []
+        for i in range(n):
+            pos_sigmas = pos_sigmas + list(combinations(
+                list(range(n)), i + 1))
+
+        # Make sure all but one (the maximal sigma) have that domination
+        # 'killing' the fixed point.
+        return len(np.unique(np.asarray(all_sigma, dtype=object))) != len(pos_sigmas)-1
 
     @classmethod
     def is_hamiltonian(cls, sA):
