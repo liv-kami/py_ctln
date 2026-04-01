@@ -1441,7 +1441,8 @@ class CTLN:
 
         # Make sure all but one (the maximal sigma) have that domination
         # 'killing' the fixed point.
-        return len(np.unique(np.asarray(all_sigma, dtype=object))) != len(pos_sigmas)-1
+        return (len(np.unique(np.asarray(all_sigma, dtype=object))) ==
+                len(pos_sigmas)-1)
 
     @classmethod
     def is_hamiltonian(cls, sA):
