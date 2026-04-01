@@ -46,6 +46,9 @@ class _KnownNetworks:
         Returns a list of all CTLNs with n nodes.
     core_n(n)
         Returns a list of all CTLNs with n nodes that are *core motifs*.
+    strongly_core_n(n)
+        Returns a list of all CTLNs with n nodes that are *strongly core
+        motifs*.
     """
 
     @staticmethod
@@ -336,6 +339,35 @@ class _KnownNetworks:
             if not path_ref.exists():
                 raise ValueError(f'Sorry, we do not yet have the list you '
                                  f'requested: core_n({n})')
+            return cls._read_d6_file(path_ref)
+
+    @classmethod
+    def strongly_core_n(cls,n):
+        """A method for obtaining a list of all CTLNs with n nodes that
+        are *strongly core motifs*.
+
+        Parameters
+        ----------
+        n : integer
+            The number of nodes to obtain all core CTLNs for.
+
+        Returns
+        -------
+        Returns the requested list.
+        """
+        if n<5:
+            path_ref: Path = files("py_ctln.known_network_data") / (
+                f"strongly_core_{n}.pkl")
+            if not path_ref.exists():
+                raise ValueError(f'Sorry, we do not yet have the list you '
+                                 f'requested: strongly_core_n({n})')
+            return cls._load_data(path_ref)
+        else:
+            path_ref: Path = files("py_ctln.known_network_data") / (
+                f"strongly_core_{n}.d6")
+            if not path_ref.exists():
+                raise ValueError(f'Sorry, we do not yet have the list you '
+                                 f'requested: strongly_core_n({n})')
             return cls._read_d6_file(path_ref)
 
 # ──────────────────────── Main Ctln Funcs ─────────────────────────
