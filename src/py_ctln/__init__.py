@@ -1074,7 +1074,7 @@ class CTLN:
         # Plots the projections of the solution
         cls.plot_projection(sA, ax=ax2[0], show=False)
         cls.plot_projection(sA, dim1=1, dim2=2, ax=ax2[1], show=False)
-        cls.plot_projection(sA, dim1=2, dim2=0, ax=ax2[2], show=False)
+        cls.plot_projection(sA, dim1=0, dim2=2, ax=ax2[2], show=False)
 
         # Plot Grayscale
         cls.plot_grayscale(soln[4], ax=ax3)
