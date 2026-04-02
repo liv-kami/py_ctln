@@ -9,6 +9,7 @@ import matplotlib.patches as mpatches
 import pickle
 from importlib.resources import files
 from pathlib import Path
+import multiprocessing as mp
 
 # ────────────────────── Known Networks Class ──────────────────────
 
@@ -1634,3 +1635,41 @@ class CTLN:
         ax.set_yticks(np.arange(n))
         ax.set_yticklabels(np.arange(1,n+1))
         ax.set_xlabel('Time')
+
+    @classmethod
+    def parallel_run(cls, matrices, method, num_processes=None):
+        """Apply a CTLN class method to a list of matrices in parallel.
+        
+        This method uses multiprocessing to parallelize operations on multiple
+        adjacency matrices, allowing for efficient batch processing without
+        requiring users to set up parallelization themselves.
+        
+        Parameters
+        ----------
+        matrices : list
+            A list of adjacency matrices (array-like) to process.
+        method : callable
+            A CTLN class method (e.g., CTLN.is_core, CTLN.get_fp,
+            CTLN.is_strongly_connected).
+        num_processes : int, optional
+            Number of processes to use. If None (default), uses all available
+            CPU cores.
+        
+        Returns
+        -------
+        results : list
+            A list of results from applying the method to each matrix, in the
+            same order as the input matrices.
+        """
+        
+        # Determine number of processes to use
+        if num_processes is None:
+            num_processes = mp.cpu_count()
+        
+        # Use a process pool to parallelize the computation
+        with mp.Pool(processes=num_processes) as pool:
+            results = pool.map(method, matrices)
+        
+        # Return the results in the same order as the input matrices
+        return results
+
