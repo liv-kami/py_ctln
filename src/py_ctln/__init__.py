@@ -9,6 +9,7 @@ import matplotlib.patches as mpatches
 import pickle
 from importlib.resources import files
 from pathlib import Path
+import matplotlib.gridspec as gridspec
 
 # ────────────────────── Known Networks Class ──────────────────────
 
@@ -1061,21 +1062,28 @@ class CTLN:
         colors = cls._get_graph_colors(n)
 
         # Creates the figure and axes for plotting
-        fig, axs = plt.subplots(
-            2,
-            1,
-            figsize=(6, 8),
-            height_ratios=[3, 1]
-        )
+        fig = plt.figure(figsize=(6,9))
+        gs = fig.add_gridspec(4, 3, height_ratios=[5, 1, 1, 1])
+        ax1 = fig.add_subplot(gs[0, :]) 
+        ax2 = [fig.add_subplot(gs[1, i]) for i in range(3)]
+        ax3 = fig.add_subplot(gs[2, :])
+        ax4 = fig.add_subplot(gs[3, :])
 
         # Plots the graph portion
-        cls.plot_graph(sA, ax=axs[0], show=False)
+        cls.plot_graph(sA, ax=ax1, show=False)
+
+        # Plots the projections of the solution
+        cls.plot_projection(sA, ax=ax2[0], show=False)
+        cls.plot_projection(sA, dim1=1, dim2=2, ax=ax2[1], show=False)
+        cls.plot_projection(sA, dim1=2, dim2=0, ax=ax2[2], show=False)
+
+        # Plot Grayscale
+        cls.plot_grayscale(soln[4], ax=ax3)
 
         # Plots the solution graph and its legend
-        ax = axs[1]
         patches = []
         for i in range(n):
-            ax.plot(soln[5], soln[4][i], color=colors[i])
+            ax4.plot(soln[5], soln[4][i], color=colors[i])
             patches.append(
                 mpatches.Patch(color=colors[i], label=f'{i + 1}'))
         plt.legend(
@@ -1083,12 +1091,23 @@ class CTLN:
             frameon=False,
             ncol=n,
             loc='lower center',
-            bbox_to_anchor=(0.5, 1.05)
+            bbox_to_anchor=(0.5, 1),
+            title='Neuron'
         )
 
         # Adds axis labels for the solution graph
-        ax.set_ylabel('Firing Rate')
-        ax.set_xlabel('Time')
+        ax4.set_ylabel('Firing Rate')
+        ax4.set_xlabel('Time')
+
+        # Adjusts the spacing of the subplots to prevent overlap and improve aesthetics
+        plt.subplots_adjust(
+            left=0.12,
+            bottom=0.075,
+            right=0.946,
+            top=0.965,
+            wspace=0.8,
+            hspace=0.575
+            )
 
         # Displays the figure
         plt.show()
@@ -1540,3 +1559,79 @@ class CTLN:
         # return true if any possible hamiltonian cycle was found in the
         # given graph and return the list of hamiltonian cycles we found
         return sum(is_a_ham_cycle) > 0, ham_cycles
+
+    @classmethod
+    def plot_projection(cls, sA, dim1=0, dim2=1, ax=None, show=True):
+        """A method for plotting the projection of the solution onto two
+        dimensions.
+
+        Parameters
+        ----------
+        sA : array-like
+            The adjacency matrix of the CTLN.
+        dim1 : int, optional
+            The first dimension to plot (Defaults to 0)
+        dim2 : int, optional
+            The second dimension to plot (Defaults to 1)
+        ax : matplotlib.axes.Axes, optional
+            The axes to plot on. (Defaults to creating a new one)
+        show : bool, optional
+            Whether to show the graph after creation. (Defaults to True)
+        """
+
+        # Validates and converts the given adjacency matrix
+        sA = cls._check_adjacency(sA)
+
+        # Let n be the size of the ctln (number of rows/columns in W,
+        # number of neurons, etc.)
+        n = sA.shape[0]
+
+        # Gets the solution for the given CTLN
+        soln = cls.get_soln(sA)
+
+        
+        # Creates the figure and axes for plotting
+        if ax is None:
+            fig, ax = plt.subplots(figsize=(6, 6))
+
+        # Plots the projection of the solution onto the two dimensions
+        for i in range(n):
+            ax.plot(soln[4][dim1], soln[4][dim2], color="black", alpha=0.9)
+
+        # Adds axis labels for the solution graph
+        ax.set_xlabel(f'Neuron {dim1 + 1} Firing Rate')
+        ax.set_ylabel(f'Neuron {dim2 + 1} Firing Rate')
+
+        # Displays the figure
+        if show: plt.show()
+    
+    @classmethod
+    def plot_grayscale(cls, soln, ax):
+        """A method for plotting the solution in grayscale.
+
+        Parameters
+        ----------
+        soln : array-like
+            The solution to plot, as returned by cls.get_soln()
+        ax : matplotlib.axes.Axes
+            The axes to plot on.
+        """
+
+        # Let n be the size of the ctln (number of rows/columns in W,
+        # number of neurons, etc.)
+        n = soln.shape[0]
+
+        # Set color limits
+        clim = [0,1]
+
+        # Plot grayscale chart
+        im = ax.imshow(soln, aspect='auto', cmap='gray_r', vmin=clim[0], vmax=clim[1],
+               extent=[0, soln.shape[1], n, 0], origin='upper', interpolation='nearest')
+        
+        # Fix ticks, colorbar, and labels
+        ax.set_xticks([])
+        ax.set_ylabel('Neuron Number')
+        plt.colorbar(im, ax=ax)
+        ax.set_yticks(np.arange(n))
+        ax.set_yticklabels(np.arange(1,n+1))
+        ax.set_xlabel('Time')
