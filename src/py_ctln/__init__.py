@@ -9,7 +9,6 @@ import matplotlib.patches as mpatches
 import pickle
 from importlib.resources import files
 from pathlib import Path
-import matplotlib.gridspec as gridspec
 
 # ────────────────────── Known Networks Class ──────────────────────
 
