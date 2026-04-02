@@ -444,6 +444,14 @@ class CTLN:
     is_hamiltonian(sA)
         A method for determining if a CTLN is hamiltonian (Contains a
         hamiltonian cycle of size n)
+    plot_projection(sA, dim1, dim2, ax, show)
+        A method for plotting the projection of the solution onto two
+        dimensions.
+    plot_grayscale(soln, ax)
+        A method for plotting the solution as a grayscale heatmap over time.
+    parallel_run(matrices, method, num_processes)
+        A method that applies a CTLN class method to multiple matrices
+        in parallel using multiprocessing for efficient batch processing.
     """
 
     epsilon: float = 0.51
