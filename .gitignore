@@ -1,3 +1,5 @@
 *.mat
 dist/*
 /.idea/julia-settings.xml
+src/py_ctln/__pycache__/*
+tests/__pycache__/*
