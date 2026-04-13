@@ -84,15 +84,15 @@ def test_domination():
     )==6
 
 def test_strongly_connected():
-    strongly_core_fives = [a for a in CTLN.collections.core_n(5) if
-                           CTLN.is_strongly_core(a)]
-    assert len(strongly_core_fives) == 26
+    pass
 
 def test_weakly_connected():
     pass
 
 def test_strongly_core():
-    pass
+    strongly_core_fives = [a for a in CTLN.collections.core_n(5) if
+                           CTLN.is_strongly_core(a)]
+    assert len(strongly_core_fives) == 26
 
 def test_is_hamiltonian():
     a = [
@@ -117,3 +117,49 @@ def test_is_hamiltonian():
     assert CTLN.is_hamiltonian(a)[1] == [[1,2,3],[2,3,1],[3,1,2]]
     assert CTLN.is_hamiltonian(b)[1] == [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
     assert CTLN.is_hamiltonian(c)[1] == []
+
+def test_parallel_run():
+    """Test the parallel_run method to ensure it works correctly."""
+    
+    # Create a set of test matrices
+    matrices = [
+        [[0, 0, 1], [1, 0, 0], [0, 1, 0]],  # core motif
+        [[0, 0, 1], [0, 0, 0], [0, 1, 0]],  # not core
+        [[0, 1, 1], [1, 0, 1], [1, 1, 0]],  # complete graph (core)
+        [[0, 0, 1], [1, 0, 1], [0, 0, 0]],  # not strongly connected
+    ]
+    
+    # Test 1: parallel_run produces same results as sequential execution
+    # for is_core method
+    parallel_results = CTLN.parallel_run(matrices, CTLN.is_core)
+    sequential_results = [CTLN.is_core(m) for m in matrices]
+    assert parallel_results == sequential_results, \
+        "Parallel results don't match sequential results for is_core"
+    
+    # Test 2: Verify specific results for is_core
+    assert parallel_results == [True, False, True, False], \
+        "is_core results are incorrect"
+    
+    # Test 3: Test with num_processes parameter
+    parallel_single = CTLN.parallel_run(matrices, CTLN.is_core, num_processes=1)
+    assert parallel_single == parallel_results, \
+        "Results differ when using num_processes=1"
+    
+    # Test 4: Test with complex return values (get_fp returns nested lists)
+    parallel_fp = CTLN.parallel_run(matrices, CTLN.get_fp)
+    assert len(parallel_fp) == len(matrices), \
+        "Number of results doesn't match number of matrices"
+    assert all(len(result) == 3 for result in parallel_fp), \
+        "get_fp results should have 3 elements (fixpts, supports, stability)"
+    
+    # Test 5: Order preservation - results should be in same order as input
+    sequential_fp = [CTLN.get_fp(m) for m in matrices]
+    for i, (parallel, sequential) in enumerate(zip(parallel_fp, sequential_fp)):
+        assert parallel[1] == sequential[1], \
+            f"Support order not preserved at matrix index {i}"
+    
+    # Test 6: Single matrix
+    single_result = CTLN.parallel_run([matrices[0]], CTLN.is_core)
+    assert single_result == [True], \
+        "Single matrix parallel execution failed"
+

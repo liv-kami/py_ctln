@@ -4,11 +4,12 @@ build-backend = "hatchling.build"
 
 [project]
 name = "py_ctln"
-version = "0.2.3"
+version = "0.3.0"
 dependencies = [
     "numpy",
     "scipy",
-    "matplotlib"
+    "matplotlib",
+    "sympy"
 ]
 authors = [
     { name="Olivia Kaminske", email="livkaminske@gmail.com" },

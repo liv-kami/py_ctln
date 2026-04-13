@@ -6,9 +6,13 @@ from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import matplotlib.patches as mpatches
+import matplotlib.lines as mlines
 import pickle
 from importlib.resources import files
 from pathlib import Path
+import multiprocessing as mp
+import sympy as sp
+from sympy import symbols, Matrix, zeros, latex, factor
 
 # ────────────────────── Known Networks Class ──────────────────────
 
@@ -46,6 +50,9 @@ class _KnownNetworks:
         Returns a list of all CTLNs with n nodes.
     core_n(n)
         Returns a list of all CTLNs with n nodes that are *core motifs*.
+    strongly_core_n(n)
+        Returns a list of all CTLNs with n nodes that are *strongly core
+        motifs*.
     """
 
     @staticmethod
@@ -338,6 +345,35 @@ class _KnownNetworks:
                                  f'requested: core_n({n})')
             return cls._read_d6_file(path_ref)
 
+    @classmethod
+    def strongly_core_n(cls,n):
+        """A method for obtaining a list of all CTLNs with n nodes that
+        are *strongly core motifs*.
+
+        Parameters
+        ----------
+        n : integer
+            The number of nodes to obtain all core CTLNs for.
+
+        Returns
+        -------
+        Returns the requested list.
+        """
+        if n<5:
+            path_ref: Path = files("py_ctln.known_network_data") / (
+                f"strongly_core_{n}.pkl")
+            if not path_ref.exists():
+                raise ValueError(f'Sorry, we do not yet have the list you '
+                                 f'requested: strongly_core_n({n})')
+            return cls._load_data(path_ref)
+        else:
+            path_ref: Path = files("py_ctln.known_network_data") / (
+                f"strongly_core_{n}.d6")
+            if not path_ref.exists():
+                raise ValueError(f'Sorry, we do not yet have the list you '
+                                 f'requested: strongly_core_n({n})')
+            return cls._read_d6_file(path_ref)
+
 # ──────────────────────── Main Ctln Funcs ─────────────────────────
 
 class CTLN:
@@ -411,6 +447,17 @@ class CTLN:
     is_hamiltonian(sA)
         A method for determining if a CTLN is hamiltonian (Contains a
         hamiltonian cycle of size n)
+    get_projection_direction(sA)
+        A method for getting the projection direction to use for
+        plotting the projection of the solution onto two dimensions.
+    plot_projection(sA, dim1, dim2, ax, show)
+        A method for plotting the projection of the solution onto two
+        dimensions.
+    plot_grayscale(soln, ax)
+        A method for plotting the solution as a grayscale heatmap over time.
+    parallel_run(matrices, method, num_processes)
+        A method that applies a CTLN class method to multiple matrices
+        in parallel using multiprocessing for efficient batch processing.
     """
 
     epsilon: float = 0.51
@@ -433,15 +480,31 @@ class CTLN:
             List of hex codes for each color.
         """
 
-        # Creates n colors evenlt distributed along the rainbow
-        colors = plt.get_cmap('rainbow', n)
-        colors = colors(np.linspace(0, 1, n))
+        # Defines the colors to be used for the first few neurons in the graph based on previously used defaults
+        our_colors = ['#CC0000', '#CC8C00', '#808080', '#269900', '#0080B3']
 
-        # Converts the colors to hex codes
-        colors = [mcolors.to_hex(color) for color in colors]
+        # If our defaults are enough, use them
+        if n <= 5:
+            return our_colors[:n]
+        
+        # Otherwise generate more colors as needed
+        else:
+            # Creates n colors evenlt distributed along the rainbow
+            colors = plt.get_cmap('rainbow', n-5)
+            colors = colors(np.linspace(0, 1, n-5))
 
-        # Returns the list of hex codes
-        return colors
+            # Converts the colors to hex codes
+            colors = [mcolors.to_hex(color) for color in colors]
+
+            # Set the first few colors to match the colors used previously 
+            colors.insert(0,'#0080B3')
+            colors.insert(0,'#269900')
+            colors.insert(0,'#808080')
+            colors.insert(0,'#CC8C00')
+            colors.insert(0,'#CC0000')
+
+            # Returns the list of hex codes
+            return colors
 
     @staticmethod
     def _check_adjacency(sA):
@@ -1029,34 +1092,62 @@ class CTLN:
         colors = cls._get_graph_colors(n)
 
         # Creates the figure and axes for plotting
-        fig, axs = plt.subplots(
-            2,
-            1,
-            figsize=(6, 8),
-            height_ratios=[3, 1]
+        fig, axs = plt.subplot_mosaic(
+            '''
+            GG12
+            GG34
+            BBBB
+            DDDD
+            '''
         )
+        fig.set_size_inches((9,6))
+        ax1 = axs['G']
+        ax2 = [axs['1'], axs['2']]
+        ax3 = [axs['3'], axs['4']]
+        ax4 = axs['B']
+        ax5 = axs['D']
 
         # Plots the graph portion
-        cls.plot_graph(sA, ax=axs[0], show=False)
+        cls.plot_graph(sA, ax=ax1, show=False)
+
+        # Plots the projections of the solution
+        proj_dir = cls.get_projection_direction(sA)
+        cls.plot_projection(sA, tstart=0,tstop=25, direction=proj_dir, ax=ax2[0], show=False)
+        cls.plot_projection(sA, tstart=25,tstop=50, direction=proj_dir, ax=ax2[1], show=False)
+        cls.plot_projection(sA, tstart=50,tstop=75, direction=proj_dir, ax=ax3[0], show=False)
+        cls.plot_projection(sA, tstart=75,tstop=100, direction=proj_dir, ax=ax3[1], show=False)
+
+        # Plot Grayscale
+        cls.plot_grayscale(soln[4], ax=ax4)
 
         # Plots the solution graph and its legend
-        ax = axs[1]
         patches = []
         for i in range(n):
-            ax.plot(soln[5], soln[4][i], color=colors[i])
+            ax5.plot(soln[5], soln[4][i], color=colors[i])
             patches.append(
-                mpatches.Patch(color=colors[i], label=f'{i + 1}'))
+                mlines.Line2D([], [], color=colors[i], label=f'{i + 1}'))
         plt.legend(
             handles=patches,
             frameon=False,
             ncol=n,
-            loc='lower center',
-            bbox_to_anchor=(0.5, 1.05)
+            loc='upper center',
+            bbox_to_anchor=(0.5, -0.5),
+            title='Neuron'
         )
 
         # Adds axis labels for the solution graph
-        ax.set_ylabel('Firing Rate')
-        ax.set_xlabel('Time')
+        ax5.set_ylabel('Firing Rate')
+        ax5.set_xlabel('Time')
+
+        # Adjusts the spacing of the subplots to prevent overlap and improve aesthetics
+        plt.subplots_adjust(
+            left=0.12,
+            bottom=0.162,
+            right=0.946,
+            top=0.965,
+            wspace=0.292,
+            hspace=0.477
+            )
 
         # Displays the figure
         plt.show()
@@ -1508,3 +1599,153 @@ class CTLN:
         # return true if any possible hamiltonian cycle was found in the
         # given graph and return the list of hamiltonian cycles we found
         return sum(is_a_ham_cycle) > 0, ham_cycles
+
+    @classmethod
+    def get_projection_direction(cls, sA):
+        """A method for generating a random projection direction.
+
+        Parameters
+        ----------
+        sA : array-like
+            The adjacency matrix of the CTLN.
+
+        Returns
+        -------
+        direction_vector : array-like
+            A vector of size n by 2 that gives the two random directions to
+            project onto.
+        """
+
+        # Validates and converts the given adjacency matrix
+        sA = cls._check_adjacency(sA)
+
+        # Let n be the size of the ctln (number of rows/columns in W,
+        # number of neurons, etc.)
+        n = sA.shape[0]
+
+        # Generates two vectors in random directions of n-dim space and normalizes them.
+        d1 = np.random.uniform(0,1,size=(n,1))
+        d1 = d1/sum(d1)
+        d2 = np.random.uniform(0,1,size=(n,1))
+        d2 = d2/sum(d2)
+
+        # Concatenates the two direction vectors into one
+        direction_vector = np.concatenate((d1,d2), axis=1)
+
+        # Returns the direction vector for the projection
+        return direction_vector
+
+    @classmethod
+    def plot_projection(cls, sA, tstart=40, tstop=80, direction=None, ax=None, show=True):
+        """A method for plotting the projection of the solution onto two
+        dimensions.
+
+        Parameters
+        ----------
+        sA : array-like
+            The adjacency matrix of the CTLN.
+        tstart : int, optional
+            The starting time index for the projection. (Defaults to 40)
+        tstop : int, optional
+            The stopping time index for the projection. (Defaults to 80)
+        ax : matplotlib.axes.Axes, optional
+            The axes to plot on. (Defaults to creating a new one)
+        show : bool, optional
+            Whether to show the graph after creation. (Defaults to True)
+        """
+
+        # Validates and converts the given adjacency matrix
+        sA = cls._check_adjacency(sA)
+
+        # Gets the solution for the given CTLN
+        soln = cls.get_soln(sA)
+
+        # Creates the figure and axes for plotting if none provided
+        if ax is None:
+            _, ax = plt.subplots(figsize=(6,6))
+
+        # Gets the projection direction to use for the projection.
+        if direction is None:
+            direction_vector = cls.get_projection_direction(sA)
+        else:
+            direction_vector = direction
+
+        # Projects the solution onto the two random direction vectors.
+        projection = soln[4].T @ direction_vector
+
+        # Plots the projection
+        ax.plot(projection[tstart*100:tstop*100,0], projection[tstart*100:tstop*100,1], color="black")
+
+        # Gets rid of useless tick labels.
+        ax.set_xticklabels([])
+        ax.set_yticklabels([])
+
+        # Show the graph if desired.
+        if show: plt.show()
+
+    @classmethod
+    def plot_grayscale(cls, soln, ax):
+        """A method for plotting the solution in grayscale.
+
+        Parameters
+        ----------
+        soln : array-like
+            The solution to plot, as returned by cls.get_soln()
+        ax : matplotlib.axes.Axes
+            The axes to plot on.
+        """
+
+        # Let n be the size of the ctln (number of rows/columns in W,
+        # number of neurons, etc.)
+        n = soln.shape[0]
+
+        # Set color limits
+        clim = [0,1]
+
+        # Plot grayscale chart
+        im = ax.imshow(soln, aspect='auto', cmap='gray_r', vmin=clim[0], vmax=clim[1],
+               extent=[0, soln.shape[1], n, 0], origin='upper', interpolation='nearest')
+        
+        # Fix ticks and labels
+        ax.set_xticks([])
+        ax.set_ylabel('Neuron Number')
+        ax.set_yticks(np.arange(n))
+        ax.set_yticklabels(np.arange(1,n+1))
+        ax.set_xlabel('Time')
+
+    @classmethod
+    def parallel_run(cls, matrices, method, num_processes=None):
+        """Apply a CTLN class method to a list of matrices in parallel.
+        
+        This method uses multiprocessing to parallelize operations on multiple
+        adjacency matrices, allowing for efficient batch processing without
+        requiring users to set up parallelization themselves.
+        
+        Parameters
+        ----------
+        matrices : list
+            A list of adjacency matrices (array-like) to process.
+        method : callable
+            A CTLN class method (e.g., CTLN.is_core, CTLN.get_fp,
+            CTLN.is_strongly_connected).
+        num_processes : int, optional
+            Number of processes to use. If None (default), uses all available
+            CPU cores.
+        
+        Returns
+        -------
+        results : list
+            A list of results from applying the method to each matrix, in the
+            same order as the input matrices.
+        """
+        
+        # Determine number of processes to use
+        if num_processes is None:
+            num_processes = mp.cpu_count()
+        
+        # Use a process pool to parallelize the computation
+        with mp.Pool(processes=num_processes) as pool:
+            results = pool.map(method, matrices)
+        
+        # Return the results in the same order as the input matrices
+        return results
