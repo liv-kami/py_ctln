@@ -447,6 +447,9 @@ class CTLN:
     is_hamiltonian(sA)
         A method for determining if a CTLN is hamiltonian (Contains a
         hamiltonian cycle of size n)
+    get_projection_direction(sA)
+        A method for getting the projection direction to use for
+        plotting the projection of the solution onto two dimensions.
     plot_projection(sA, dim1, dim2, ax, show)
         A method for plotting the projection of the solution onto two
         dimensions.
