@@ -8,7 +8,8 @@ version = "0.3.0"
 dependencies = [
     "numpy",
     "scipy",
-    "matplotlib"
+    "matplotlib",
+    "sympy"
 ]
 authors = [
     { name="Olivia Kaminske", email="livkaminske@gmail.com" },

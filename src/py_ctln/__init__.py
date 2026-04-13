@@ -6,10 +6,13 @@ from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import matplotlib.patches as mpatches
+import matplotlib.lines as mlines
 import pickle
 from importlib.resources import files
 from pathlib import Path
 import multiprocessing as mp
+import sympy as sp
+from sympy import symbols, Matrix, zeros, latex, factor
 
 # ────────────────────── Known Networks Class ──────────────────────
 
@@ -474,15 +477,31 @@ class CTLN:
             List of hex codes for each color.
         """
 
-        # Creates n colors evenlt distributed along the rainbow
-        colors = plt.get_cmap('rainbow', n)
-        colors = colors(np.linspace(0, 1, n))
+        # Defines the colors to be used for the first few neurons in the graph based on previously used defaults
+        our_colors = ['#CC0000', '#CC8C00', '#808080', '#269900', '#0080B3']
 
-        # Converts the colors to hex codes
-        colors = [mcolors.to_hex(color) for color in colors]
+        # If our defaults are enough, use them
+        if n <= 5:
+            return our_colors[:n]
+        
+        # Otherwise generate more colors as needed
+        else:
+            # Creates n colors evenlt distributed along the rainbow
+            colors = plt.get_cmap('rainbow', n-5)
+            colors = colors(np.linspace(0, 1, n-5))
 
-        # Returns the list of hex codes
-        return colors
+            # Converts the colors to hex codes
+            colors = [mcolors.to_hex(color) for color in colors]
+
+            # Set the first few colors to match the colors used previously 
+            colors.insert(0,'#0080B3')
+            colors.insert(0,'#269900')
+            colors.insert(0,'#808080')
+            colors.insert(0,'#CC8C00')
+            colors.insert(0,'#CC0000')
+
+            # Returns the list of hex codes
+            return colors
 
     @staticmethod
     def _check_adjacency(sA):
@@ -1070,51 +1089,61 @@ class CTLN:
         colors = cls._get_graph_colors(n)
 
         # Creates the figure and axes for plotting
-        fig = plt.figure(figsize=(6,9))
-        gs = fig.add_gridspec(4, 3, height_ratios=[5, 1, 1, 1])
-        ax1 = fig.add_subplot(gs[0, :]) 
-        ax2 = [fig.add_subplot(gs[1, i]) for i in range(3)]
-        ax3 = fig.add_subplot(gs[2, :])
-        ax4 = fig.add_subplot(gs[3, :])
+        fig, axs = plt.subplot_mosaic(
+            '''
+            GG12
+            GG34
+            BBBB
+            DDDD
+            '''
+        )
+        fig.set_size_inches((9,6))
+        ax1 = axs['G']
+        ax2 = [axs['1'], axs['2']]
+        ax3 = [axs['3'], axs['4']]
+        ax4 = axs['B']
+        ax5 = axs['D']
 
         # Plots the graph portion
         cls.plot_graph(sA, ax=ax1, show=False)
 
         # Plots the projections of the solution
-        cls.plot_projection(sA, ax=ax2[0], show=False)
-        cls.plot_projection(sA, dim1=1, dim2=2, ax=ax2[1], show=False)
-        cls.plot_projection(sA, dim1=0, dim2=2, ax=ax2[2], show=False)
+        proj_dir = cls.get_projection_direction(sA)
+        cls.plot_projection(sA, tstart=0,tstop=25, direction=proj_dir, ax=ax2[0], show=False)
+        cls.plot_projection(sA, tstart=25,tstop=50, direction=proj_dir, ax=ax2[1], show=False)
+        cls.plot_projection(sA, tstart=50,tstop=75, direction=proj_dir, ax=ax3[0], show=False)
+        cls.plot_projection(sA, tstart=75,tstop=100, direction=proj_dir, ax=ax3[1], show=False)
 
         # Plot Grayscale
-        cls.plot_grayscale(soln[4], ax=ax3)
+        cls.plot_grayscale(soln[4], ax=ax4)
 
         # Plots the solution graph and its legend
         patches = []
         for i in range(n):
-            ax4.plot(soln[5], soln[4][i], color=colors[i])
+            ax5.plot(soln[5], soln[4][i], color=colors[i])
             patches.append(
-                mpatches.Patch(color=colors[i], label=f'{i + 1}'))
+                mlines.Line2D([], [], color=colors[i], label=f'{i + 1}'))
         plt.legend(
             handles=patches,
             frameon=False,
             ncol=n,
-            loc='lower center',
-            bbox_to_anchor=(0.5, 1),
+            loc='upper center',
+            bbox_to_anchor=(0.5, -0.5),
             title='Neuron'
         )
 
         # Adds axis labels for the solution graph
-        ax4.set_ylabel('Firing Rate')
-        ax4.set_xlabel('Time')
+        ax5.set_ylabel('Firing Rate')
+        ax5.set_xlabel('Time')
 
         # Adjusts the spacing of the subplots to prevent overlap and improve aesthetics
         plt.subplots_adjust(
             left=0.12,
-            bottom=0.075,
+            bottom=0.162,
             right=0.946,
             top=0.965,
-            wspace=0.8,
-            hspace=0.575
+            wspace=0.292,
+            hspace=0.477
             )
 
         # Displays the figure
@@ -1569,22 +1598,19 @@ class CTLN:
         return sum(is_a_ham_cycle) > 0, ham_cycles
 
     @classmethod
-    def plot_projection(cls, sA, dim1=0, dim2=1, ax=None, show=True):
-        """A method for plotting the projection of the solution onto two
-        dimensions.
+    def get_projection_direction(cls, sA):
+        """A method for generating a random projection direction.
 
         Parameters
         ----------
         sA : array-like
             The adjacency matrix of the CTLN.
-        dim1 : int, optional
-            The first dimension to plot (Defaults to 0)
-        dim2 : int, optional
-            The second dimension to plot (Defaults to 1)
-        ax : matplotlib.axes.Axes, optional
-            The axes to plot on. (Defaults to creating a new one)
-        show : bool, optional
-            Whether to show the graph after creation. (Defaults to True)
+
+        Returns
+        -------
+        direction_vector : array-like
+            A vector of size n by 2 that gives the two random directions to
+            project onto.
         """
 
         # Validates and converts the given adjacency matrix
@@ -1594,25 +1620,66 @@ class CTLN:
         # number of neurons, etc.)
         n = sA.shape[0]
 
+        # Generates two vectors in random directions of n-dim space and normalizes them.
+        d1 = np.random.uniform(0,1,size=(n,1))
+        d1 = d1/sum(d1)
+        d2 = np.random.uniform(0,1,size=(n,1))
+        d2 = d2/sum(d2)
+
+        # Concatenates the two direction vectors into one
+        direction_vector = np.concatenate((d1,d2), axis=1)
+
+        # Returns the direction vector for the projection
+        return direction_vector
+
+    @classmethod
+    def plot_projection(cls, sA, tstart=40, tstop=80, direction=None, ax=None, show=True):
+        """A method for plotting the projection of the solution onto two
+        dimensions.
+
+        Parameters
+        ----------
+        sA : array-like
+            The adjacency matrix of the CTLN.
+        tstart : int, optional
+            The starting time index for the projection. (Defaults to 40)
+        tstop : int, optional
+            The stopping time index for the projection. (Defaults to 80)
+        ax : matplotlib.axes.Axes, optional
+            The axes to plot on. (Defaults to creating a new one)
+        show : bool, optional
+            Whether to show the graph after creation. (Defaults to True)
+        """
+
+        # Validates and converts the given adjacency matrix
+        sA = cls._check_adjacency(sA)
+
         # Gets the solution for the given CTLN
         soln = cls.get_soln(sA)
 
-        
-        # Creates the figure and axes for plotting
+        # Creates the figure and axes for plotting if none provided
         if ax is None:
-            fig, ax = plt.subplots(figsize=(6, 6))
+            _, ax = plt.subplots(figsize=(6,6))
 
-        # Plots the projection of the solution onto the two dimensions
-        for i in range(n):
-            ax.plot(soln[4][dim1], soln[4][dim2], color="black", alpha=0.9)
+        # Gets the projection direction to use for the projection.
+        if direction is None:
+            direction_vector = cls.get_projection_direction(sA)
+        else:
+            direction_vector = direction
 
-        # Adds axis labels for the solution graph
-        ax.set_xlabel(f'Neuron {dim1 + 1} Firing Rate')
-        ax.set_ylabel(f'Neuron {dim2 + 1} Firing Rate')
+        # Projects the solution onto the two random direction vectors.
+        projection = soln[4].T @ direction_vector
 
-        # Displays the figure
+        # Plots the projection
+        ax.plot(projection[tstart*100:tstop*100,0], projection[tstart*100:tstop*100,1], color="black")
+
+        # Gets rid of useless tick labels.
+        ax.set_xticklabels([])
+        ax.set_yticklabels([])
+
+        # Show the graph if desired.
         if show: plt.show()
-    
+
     @classmethod
     def plot_grayscale(cls, soln, ax):
         """A method for plotting the solution in grayscale.
@@ -1636,10 +1703,9 @@ class CTLN:
         im = ax.imshow(soln, aspect='auto', cmap='gray_r', vmin=clim[0], vmax=clim[1],
                extent=[0, soln.shape[1], n, 0], origin='upper', interpolation='nearest')
         
-        # Fix ticks, colorbar, and labels
+        # Fix ticks and labels
         ax.set_xticks([])
         ax.set_ylabel('Neuron Number')
-        plt.colorbar(im, ax=ax)
         ax.set_yticks(np.arange(n))
         ax.set_yticklabels(np.arange(1,n+1))
         ax.set_xlabel('Time')
@@ -1680,4 +1746,3 @@ class CTLN:
         
         # Return the results in the same order as the input matrices
         return results
-
