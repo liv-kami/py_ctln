@@ -5,10 +5,11 @@ from itertools import combinations, permutations
 from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
-import matplotlib.patches as mpatches
 import matplotlib.lines as mlines
 import pickle
 from importlib.resources import files
+from importlib.metadata import version
+import requests
 from pathlib import Path
 import multiprocessing as mp
 import sympy as sp
@@ -1749,3 +1750,32 @@ class CTLN:
         
         # Return the results in the same order as the input matrices
         return results
+
+    @staticmethod
+    def _check_for_updates():
+        """
+        A method for checking if there is an update available for the py_ctln package.
+        """
+
+        # Define the package name to check
+        package_name = 'py_ctln'
+
+        try:
+            # Get the currently used version of the package
+            current_version = version(package_name)
+
+            # Get the latest release version number from pip
+            response = requests.get(f"https://pypi.org/pypi/{package_name}/json", timeout=1)
+            latest_version = response.json()['info']['version']
+
+            # Alert the user if there is an update available, otherwise do nothing
+            if current_version != latest_version:
+                print(f"Update available for {package_name}: {current_version} -> {latest_version}")
+                print(f"Run 'pip install --upgrade {package_name}' to update.")
+
+        except Exception as e:
+            # If there was an error (e.g. no internet connection), just pass and do not alert the user.
+            pass
+
+# Checks for package update on import
+CTLN._check_for_updates()

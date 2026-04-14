@@ -9,7 +9,8 @@ dependencies = [
     "numpy",
     "scipy",
     "matplotlib",
-    "sympy"
+    "sympy",
+    "requests"
 ]
 authors = [
     { name="Olivia Kaminske", email="livkaminske@gmail.com" },
