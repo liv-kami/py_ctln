@@ -472,6 +472,9 @@ class CTLN:
     is_directional(sA, omega, tau)
         A method for determining if a CTLN is directional with respect to a
         particular omega and tau partitioning of the graph.
+    get_circulant_graph(n, forward_edges)
+        A method for generating the adjacency matrix for a circulant graph
+        with n nodes and the specified forward edges.
     """
 
     epsilon: float = 0.51
@@ -1952,6 +1955,35 @@ class CTLN:
         
         # If domination conditions hold, return true
         return directional, sigma_fail
+    
+    @staticmethod
+    def get_circulant_graph(n, forward_edges):
+        """ A method for generating the adjacency matrix of a circulant graph.
+
+        Parameters
+        ----------
+        n : int
+            The number of nodes in the circulant graph.
+        forward_edges : list of ints
+            A list of the indices of the forward edges in the circulant graph. 
+            For example, if forward_edges = [1, 3], then each node i sends to nodes (i+1) mod n and (i+3) mod n.
+
+        Returns
+        -------
+        sA : array-like
+            The adjacency matrix of the circulant graph.
+        """
+
+        # Create an empty adjacency matrix
+        sA = np.zeros((n,n), dtype=int)
+
+        # Fill in the adjacency matrix according to the forward edges
+        for i in range(n):
+            for edge in forward_edges:
+                sA[(i + edge) % n, i] = 1
+        
+        # Return the adjacency matrix
+        return sA
 
 # Checks for package update on import
 CTLN._check_for_updates()
