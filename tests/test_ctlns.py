@@ -200,3 +200,23 @@ def test_is_circulant():
     assert CTLN.is_circulant(sA)[1] == []
     assert CTLN.is_circulant(sA)[2] == []
 
+def test_is_clique_union():
+    sA = [
+        [0,1,1],
+        [1,0,1],
+        [1,1,0]
+    ]
+
+    assert CTLN.is_clique_union(sA,[[0],[1],[2]]) == True
+    assert CTLN.is_clique_union(sA,[[0,1],[2]]) == True
+
+    sA = [
+        [0,1,1],
+        [1,0,0],
+        [1,1,0]
+    ]
+
+    assert CTLN.is_clique_union(sA,[[0],[1],[2]]) == False
+    assert CTLN.is_clique_union(sA,[[0,1],[2]]) == False
+    assert CTLN.is_clique_union(sA,[[1,2],[0]]) == True
+

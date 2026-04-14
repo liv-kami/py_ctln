@@ -466,6 +466,9 @@ class CTLN:
     is_circulant(sA)
         A method for determining if a CTLN is circulant, and if so, what the
         ordering and forward edges are.
+    is_clique_union(sA, tau_partition)
+        A method for determining if a CTLN is a clique union with respect
+        to a particular partitioning of the nodes.
     """
 
     epsilon: float = 0.51
@@ -1841,6 +1844,44 @@ class CTLN:
         
         # If not circulant, return false
         return False, [], []
+    
+    @classmethod
+    def is_clique_union(cls, sA, tau_partition):
+        """ A method for determining if a CTLN is a clique union.
+
+        Parameters
+        ----------
+        sA : array-like
+            The adjacency matrix of the CTLN.
+        tau_partition : list of lists
+            A partition of the nodes into subsets.
+        
+        Returns
+        -------
+        True if the CTLN is a clique union with respect to the given partition, False otherwise.
+        """
+
+        # Validates and converts the given adjacency matrix
+        sA = cls._check_adjacency(sA)
+
+        # Get number of parts in the partition
+        n_parts = len(tau_partition)
+
+        # Check each part
+        for i in range(n_parts):
+            for j in range(i+1, n_parts):
+
+                # Check each pair of parts within the partition is bidirectionally connected
+                tau_a = np.asarray(tau_partition[i])
+                tau_b = np.asarray(tau_partition[j])
+                expected = tau_a.size * tau_b.size
+
+                # If any pair of parts of the partition are not, return False.
+                if sA[np.ix_(tau_a, tau_b)].sum() != expected or sA[np.ix_(tau_b, tau_a)].sum() != expected:
+                    return False
+                
+        # Return true if clique union.
+        return True
 
 # Checks for package update on import
 CTLN._check_for_updates()
