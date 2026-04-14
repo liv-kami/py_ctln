@@ -33,6 +33,8 @@ jobs:
         hatch --version # Verify that Hatch is installed
         # pip install virtualenv
         pip show virtualenv
+    - name: Run tests
+      run: hatch test
     - name: Build package
       run: hatch build
     - name: Publish package distributions to PyPI
