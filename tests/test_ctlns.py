@@ -163,3 +163,40 @@ def test_parallel_run():
     assert single_result == [True], \
         "Single matrix parallel execution failed"
 
+def test_is_circulant():
+    sA = [
+        [0,0,0,0,1],
+        [1,0,0,0,0],
+        [0,1,0,0,0],
+        [0,0,1,0,0],
+        [0,0,0,1,0]
+    ]
+
+    assert CTLN.is_circulant(sA)[0] == True
+    assert CTLN.is_circulant(sA)[1] == [1,2,3,4,5]
+    assert CTLN.is_circulant(sA)[2] == [1]
+
+    sA = [
+        [0,0,0,1,1],
+        [1,0,0,0,1],
+        [1,1,0,0,0],
+        [0,1,1,0,0],
+        [0,0,1,1,0]
+    ]
+    
+    assert CTLN.is_circulant(sA)[0] == True
+    assert CTLN.is_circulant(sA)[1] == [1,2,3,4,5]
+    assert CTLN.is_circulant(sA)[2] == [1,2]
+
+    sA = [
+        [0,0,0,0,1],
+        [1,0,0,0,0],
+        [0,1,0,0,0],
+        [0,0,1,0,1],
+        [0,0,0,0,0]
+    ]
+
+    assert CTLN.is_circulant(sA)[0] == False
+    assert CTLN.is_circulant(sA)[1] == []
+    assert CTLN.is_circulant(sA)[2] == []
+

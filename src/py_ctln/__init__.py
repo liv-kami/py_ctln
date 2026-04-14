@@ -12,6 +12,7 @@ from importlib.metadata import version
 import requests
 from pathlib import Path
 import multiprocessing as mp
+import math
 import sympy as sp
 from sympy import symbols, Matrix, zeros, latex, factor
 
@@ -462,6 +463,9 @@ class CTLN:
     _check_for_updates()
         A method that checks if there is an update available for the package 
         and alerts the user if there is. Called on import.
+    is_circulant(sA)
+        A method for determining if a CTLN is circulant, and if so, what the
+        ordering and forward edges are.
     """
 
     epsilon: float = 0.51
@@ -1779,6 +1783,64 @@ class CTLN:
         except Exception as e:
             # If there was an error (e.g. no internet connection), just pass and do not alert the user.
             pass
+
+    @classmethod
+    def is_circulant(cls, sA):
+        """ A method for determining if a CTLN is circulant.
+
+        A circulant graph is one where there is some ordering of the nodes such
+        that the adjacency matrix is circulant. A circulant matrix is one
+        where each column is a shifted version of the previous column.
+
+        Parameters
+        ----------
+        sA : array-like
+            The adjacency matrix of the CTLN.
+
+        Returns
+        -------
+        is_circulant : bool
+            True if the CTLN is circulant, False otherwise.
+        ordering : array-like
+            The ordering of the nodes that makes the adjacency matrix circulant
+        forward_edges : array-like
+            The pattern used for circulant graph notation
+        """
+
+        # Validates and converts the given adjacency matrix
+        sA = cls._check_adjacency(sA)
+
+        # Let n be the size of the ctln (number of rows/columns in W,
+        # number of neurons, etc.)
+        n = sA.shape[0]
+
+        # Check every possible ordering of the nodes
+        for perm in permutations(range(1,n)):
+
+            # Get current ordering to check
+            current_perm = [0] + list(perm)
+
+            # Get the adjacency matrix in that ordering
+            sA_new = sA[np.ix_(current_perm, current_perm)]
+
+            # Shift each column as appropriate
+            sA_shifted = np.zeros_like(sA_new)
+
+            # Check if matrix is circulant
+            for j in range(n):
+                sA_shifted[:,j] = np.roll(sA_new[:,j],-j)
+
+            # Get the first column
+            first_col = sA_shifted[:,0]
+
+            # Check that the proper pattern appears
+            if np.allclose(sA_shifted, np.tile(first_col.reshape(-1,1), (1,n))):
+
+                # Return results
+                return True, [i+1 for i in current_perm], np.nonzero(first_col)[0].tolist()
+        
+        # If not circulant, return false
+        return False, [], []
 
 # Checks for package update on import
 CTLN._check_for_updates()
