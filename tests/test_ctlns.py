@@ -220,3 +220,98 @@ def test_is_clique_union():
     assert CTLN.is_clique_union(sA,[[0,1],[2]]) == False
     assert CTLN.is_clique_union(sA,[[1,2],[0]]) == True
 
+def test_is_directional():
+    # should be directional
+    sA = [
+        [0,1,1,0],
+        [1,0,1,0],
+        [0,0,0,1],
+        [1,1,1,0]
+    ]
+
+    assert CTLN.is_directional(sA, omega=[0,1], tau=[2,3])[0] == True
+
+    sA = [
+        [0,0,1,0],
+        [1,0,0,0],
+        [0,1,0,0],
+        [1,1,1,0]
+    ]
+
+    assert CTLN.is_directional(sA,omega=[0,1,2], tau=[3])[0] == True
+
+    sA = [
+        [0,0,1,0],
+        [1,0,0,0],
+        [0,1,0,0],
+        [1,1,0,0]
+    ]
+    assert CTLN.is_directional(sA,omega=[0,1,2], tau=[3])[0] == True
+
+    sA = [
+        [0,1,0,1],
+        [1,0,0,1],
+        [1,1,0,1],
+        [0,0,1,0]
+    ]
+
+    assert CTLN.is_directional(sA,omega=[0,1], tau=[2,3])[0] == True
+
+    sA = [
+        [0,0,1,1,0],
+        [1,0,0,1,0],
+        [0,1,0,0,0],
+        [0,0,0,0,1],
+        [0,1,1,1,0]
+    ]
+
+    assert CTLN.is_directional(sA,omega=[0,1,2], tau=[3,4])[0] == True
+
+    sA = [
+        [0,0,0,1],
+        [1,0,0,1],
+        [0,1,0,0],
+        [0,0,1,0]
+    ]
+
+    assert CTLN.is_directional(sA,omega=[0], tau=[1,2,3])[0] == True
+
+    sA = [
+        [0,1,1,0,0],
+        [1,0,0,0,1],
+        [1,1,0,0,1],
+        [1,0,1,0,0],
+        [0,0,0,1,0]
+    ]
+
+    assert CTLN.is_directional(sA,omega=[0,1], tau=[2,3,4])[0] == True
+
+    # Not directional
+
+    sA = [
+        [0,0,1,0],
+        [1,0,0,0],
+        [0,1,0,0],
+        [1,0,0,0]
+    ]
+
+    assert CTLN.is_directional(sA,omega=[0,1,2], tau=[3])[0] == False
+
+    sA = [
+        [0,1,0,0],
+        [1,0,0,0],
+        [1,0,0,1],
+        [0,1,1,0]
+    ]
+
+    assert CTLN.is_directional(sA,omega=[0,1], tau=[2,3])[0] == False
+
+    sA = [
+        [0,1,1,0,1],
+        [1,0,1,0,1],
+        [1,0,0,0,1],
+        [1,1,1,0,0],
+        [0,1,0,1,0]
+    ]
+
+    assert CTLN.is_directional(sA,omega=[0,1], tau=[2,3,4])[0] == False

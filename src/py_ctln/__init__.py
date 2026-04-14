@@ -469,6 +469,9 @@ class CTLN:
     is_clique_union(sA, tau_partition)
         A method for determining if a CTLN is a clique union with respect
         to a particular partitioning of the nodes.
+    is_directional(sA, omega, tau)
+        A method for determining if a CTLN is directional with respect to a
+        particular omega and tau partitioning of the graph.
     """
 
     epsilon: float = 0.51
@@ -1882,6 +1885,73 @@ class CTLN:
                 
         # Return true if clique union.
         return True
+
+    @classmethod
+    def is_directional(cls, sA, omega, tau):
+        """ A method for determining if a CTLN is directional with respect to a given 
+            omega and tau partition.
+
+        Parameters
+        ----------
+        sA : array-like
+            The adjacency matrix of the CTLN.
+        omega : array-like
+            A subset of the nodes in the CTLN.
+        tau : array-like
+            A subset of the nodes in the CTLN, disjoint from omega and together with omega 
+            containing all nodes in the CTLN.
+
+        Returns
+        -------
+        directional : bool
+            True if the CTLN is directional with respect to the given omega and tau, False otherwise
+        sigma_fail : list
+            If the CTLN is not directional, a list of the nodes in the sigma that fails the directional condition.
+        """
+
+        # Validates and converts the given adjacency matrix
+        sA = cls._check_adjacency(sA)
+
+        # Let n be the size of the ctln (number of rows/columns in W,
+        # number of neurons, etc.)
+        n = sA.shape[0]
+
+        # Turn omega and tau into sets
+        omega_s = set(omega)
+        tau_s = set(tau)
+
+        # Ensure omega and tau are disjoint
+        if len(omega_s.intersection(tau_s))>0:
+            raise ValueError("Omega and Tau must be disjoint.")
+        
+        # Ensure omega and tau together contain all nodes
+        if len(omega_s) + len(tau_s) < n:
+            raise ValueError("Omega and Tau together must contain all nodes.")
+        
+        # Set default returns
+        directional = True
+        sigma_fail : list[int] = []
+
+        # Check every sigma
+        for mask in range(1, 1 << n):
+            sigma = {i for i in range(n) if (mask >> i) & 1}
+
+            # If sigma contains any node from omega
+            if sigma & omega_s:
+
+                # Check there is some form of domination, as required as by the definition, and return false if none found
+                j_of_interest = sigma & omega_s
+                all_k, all_j, all_sigma, _ = cls.find_graphical_domination(sA, types_to_look_for=['inside-in'])
+                if not any(j-1 in j_of_interest and set(sigma) == set([i-1 for i in sigma_dom.tolist()]) for j, sigma_dom in zip(all_j, all_sigma)):
+                    k_of_interest = set(range(n)) - sigma
+                    all_k, all_j, all_sigma, _ = cls.find_graphical_domination(sA, types_to_look_for=['outside-in'])
+                    if not any(k-1 in k_of_interest and j-1 in j_of_interest and set(sigma) == set([i-1 for i in sigma_dom.tolist()]) for k,j, sigma_dom in zip(all_k, all_j, all_sigma)):
+                        directional = False
+                        sigma_fail = sorted(sigma)
+                        return directional, sigma_fail
+        
+        # If domination conditions hold, return true
+        return directional, sigma_fail
 
 # Checks for package update on import
 CTLN._check_for_updates()
