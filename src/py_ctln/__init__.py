@@ -459,6 +459,9 @@ class CTLN:
     parallel_run(matrices, method, num_processes)
         A method that applies a CTLN class method to multiple matrices
         in parallel using multiprocessing for efficient batch processing.
+    _check_for_updates()
+        A method that checks if there is an update available for the package 
+        and alerts the user if there is. Called on import.
     """
 
     epsilon: float = 0.51
