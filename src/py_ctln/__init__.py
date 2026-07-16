@@ -2347,22 +2347,3 @@ class CTLN:
 
 # Checks for package update on import
 CTLN._check_for_updates()
-
-sA = np.array([
-    [0,0,0,1,1],
-    [1,0,1,0,0],
-    [1,1,0,0,0],
-    [0,1,1,0,0],
-    [0,1,0,1,0]
-])
-#print(CTLN.get_fp(sA))
-#print(CTLN.check_si_survival(sA, [0,1,2,3,4]))
-#print(CTLN.get_fp_by_si(sA))
-print(CTLN.get_symbolic_w(sA))
-
-#CTLN.set_params(epsilon=0.1, delta=0.12)
-#CTLN.set_params(epsilon=0.25, delta=0.5)
-#print(CTLN.find_graphical_domination(sA, types_to_look_for=['inside-out', 'outside-in']))
-#print(CTLN._check_survival_all_embeddings(sA[np.ix_([0,1,2,3],[0,1,2,3])], [0,1,2,3]))
-#print(CTLN._check_survival_param_ind(sA, [0,1,2,3], [4]))
-#print(CTLN.get_fp(sA))
