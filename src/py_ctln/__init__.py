@@ -1,7 +1,7 @@
 # ─────────────────────────── Libraries ────────────────────────────
 
 import numpy as np
-from itertools import combinations, permutations
+from itertools import combinations, permutations, chain
 from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
@@ -475,6 +475,12 @@ class CTLN:
     get_circulant_graph(n, forward_edges)
         A method for generating the adjacency matrix for a circulant graph
         with n nodes and the specified forward edges.
+    _make_all_embeddings(n)
+        A method for producing all of the possible embeddings to test when checking parameter dependence
+    _check_survival_param_ind(cls, sA, sigma,k_of_interest, dom)
+        A method for checking if a particular sigma survives the addition of particular dominator nodes k.
+    _check_survival_all_embeddings(cls, sA_sig, sigma)
+        A method for checking the survival of a particular sigma with respect to all possible domination embeddings.
     """
 
     epsilon: float = 0.51
@@ -606,7 +612,7 @@ class CTLN:
         cls.delta = delta
 
     @classmethod
-    def get_w_mat(cls, sA):
+    def get_w_mat(cls, sA, **kwargs):
         """Creates the W matrix from the adjacency matrix.
 
         The W matrix, when constructed from an adjacency matrix,
@@ -619,6 +625,10 @@ class CTLN:
         ----------
         sA : array-like
             The adjacency matrix to create the W matrix from.
+        **kwargs : dict
+            Optionally, can include arguments for epsilon or delta
+            if you don't want to change them globally and just want it
+            for one run.
 
         Returns
         -------
@@ -629,8 +639,12 @@ class CTLN:
         # Check that the given adjacency matrix is valid.
         sA = cls._check_adjacency(sA)
 
+        # Set epsilon and delta if given, otherwise use global values
+        e = kwargs.get('epsilon') if kwargs.get('epsilon') else cls.epsilon
+        d = kwargs.get('delta') if kwargs.get('delta') else cls.delta
+
         # Create the W matrix using the established shortcut formula.
-        W = sA * (-1 + cls.epsilon) + (1 - sA) * (-1 - cls.delta)
+        W = sA * (-1 + e) + (1 - sA) * (-1 - d)
 
         # Replace the diagonals of the constructed W with zeroes to
         # finalize its construction.
@@ -1985,5 +1999,370 @@ class CTLN:
         # Return the adjacency matrix
         return sA
 
+    @classmethod
+    def get_symbolic_w(cls, sA):
+        # Check that the given adjacency matrix is valid.
+        sA = cls._check_adjacency(sA)
+
+        e, d = sp.symbols('e d')
+
+        # Create the W matrix using the established shortcut formula.
+        W = sA * (-1 + e) + (1 - sA) * (-1 - d)
+
+        # Replace the diagonals of the constructed W with zeroes to
+        # finalize its construction.
+        np.fill_diagonal(W, 0)
+
+        # Return the constructed W matrix.
+        return W
+
+    @classmethod
+    def s_i_of_sig(cls,sA,sigma,i,**kwargs):
+        """ A method for calculating the s_i value for a particular sA, i,
+        and sigma
+
+        Parameters
+        ----------
+        sA : array-like
+            The adjacency matrix of the CTLN.
+        sigma : list of ints
+            A list of the indices for the nodes in the sigma to
+            calculate with respect to
+        i : int
+            The index of the node to check as the i
+        kwargs : dict
+            Additional keyword arguments to pass to get_w_mat, 
+            for values of epsilon and delta.
+        
+        Returns
+        -------
+        The computed s_i^sigma value.
+        """
+
+        # Validates and converts the given adjacency matrix
+        sA = cls._check_adjacency(sA)
+
+        # Gets the corresponding W matrix for sA
+        W = cls.get_w_mat(sA, **kwargs)
+
+        # Gets the set sigma union the node i
+        sig_u_i = list(set(sigma).union({i}))
+
+        # Gets the necessary identity matrix
+        I = np.identity(len(sig_u_i))
+
+        # Gets W restricted to sig_u_i
+        W_sig_u_i = W[np.ix_(sig_u_i,sig_u_i)]
+
+        # Calculates the I-W resticted to sig_u_i and then replaces the
+        # i'th column with 1s
+        M = I - W_sig_u_i
+        ind = sig_u_i.index(i)
+        M[:,ind] = 1
+
+        # Returns the determinant of that matrix
+        return np.linalg.det(M)
+
+    @classmethod
+    def check_si_survival(cls, sA, sigma, **kwargs):
+        """ A method for determining if a sigma is a FP of a given CTLN
+            using sign conditions.
+
+        Parameters
+        ----------
+        sA : array-like
+            The adjacency matrix of the CTLN
+        sigma : array-like
+            A list of integer indices that represent which nodes are in sigma
+        kwargs : dict
+            Additional keyword arguments to pass to s_i_of_sig, 
+            for values of epsilon and delta.
+
+        Returns
+        -------
+        True if sigma survives, False if not.
+        """
+
+        # Validates and converts the given adjacency matrix
+        sA = cls._check_adjacency(sA)
+
+        # Let n be the size of the ctln (number of rows/columns in sA,
+        # number of neurons, etc.)
+        n = sA.shape[0]
+
+        # Get list of si values for the sigma
+        si_list = [cls.s_i_of_sig(sA, sigma, i, **kwargs) for i in list(range(n))]
+
+        # Separate values into those in and outside of sigma
+        si_list_inside = [i for e,i in enumerate(si_list) if e in sigma]
+        si_list_outside = [i for e,i in enumerate(si_list) if e not in sigma]
+
+        # Get the sign for inside of sigma
+        temp = np.sign(si_list_inside[0])
+
+        # Make sure all inside match and all outside are opposite
+        check_inside = np.all([np.sign(i)==temp for i in si_list_inside])
+        check_outside = np.all([np.sign(i)!=temp for i in si_list_outside])
+
+        # Return result
+        return check_inside and check_outside
+    
+    @classmethod
+    def get_fp_by_si(cls, sA, **kwargs):
+        sA = cls._check_adjacency(sA)
+        n = sA.shape[0]
+        sigmas = list(chain.from_iterable(combinations(range(n), r) for r in range(len(range(n)) + 1)))
+        del sigmas[0]
+        res = [cls.check_si_survival(sA, s, **kwargs) for s in sigmas]
+        return [np.asarray(s)+1 for s,t in zip(sigmas,res) if t]
+    
+    @classmethod
+    def get_param_indep_fps(cls, sA):
+        sA = cls._check_adjacency(sA)
+        n = sA.shape[0]
+        sigmas = list(chain.from_iterable(combinations(range(n), r) for r in range(len(range(n)) + 1)))
+        del sigmas[0]
+
+
+
+    @staticmethod
+    def _make_all_embeddings(n):
+        """ A method for producing all of the possible embeddings to test when checking parameter dependence
+
+        Parameters
+        ----------
+        n : int
+            The number of nodes in the graph
+
+        Returns
+        -------
+        embeddings : array-like
+            An array of size (2^n - 1) by n, where each row is a different embedding of the n nodes.
+        """
+
+        # Create an empty array to hold the embeddings
+        embeddings = np.zeros((2**n, n), dtype=int)
+
+        # Fill the array with the possible embeddings
+        for i in range(2**n):
+            embeddings[i] = [(i >> j) & 1 for j in range(n)]
+
+        # Return all but the trivial embedding
+        return embeddings[1:]
+    
+    @classmethod
+    def _check_survival_param_ind(cls, sA, sigma,k_of_interest, dom):
+        """ A method for checking if a particular sigma survives the addition of particular dominator nodes k.
+
+        Parameters
+        ----------
+        sA : array-like
+            The adjacency matrix of the CTLN.
+        sigma : array-like
+            The subgraph we are checking the survival of.
+        k_of_interest : array-like
+            The dominator nodes we are checking the survival with respect to.
+        dom : dict
+            A dictionary containing the domination relationships found in the graph, as returned by find_graphical_domination
+
+        Returns
+        -------
+        tf_param_ind : array-like
+            A boolean array of size len(k_of_interest) by 1, where each entry is True if the survival of sigma with respect to that k is parameter independent, and False otherwise.
+        tf_survives : array-like
+            A boolean array of size len(k_of_interest) by 1, where each entry is True if sigma survives the addition of that k with the current parameters, and False otherwise.
+        tf_uid : bool
+            A boolean indicating whether sigma is a uniform in-degree subgraph, which guarantees parameter independent survival.
+        """
+
+        # Validates and converts the given adjacency matrix
+        if isinstance(sA, list):
+            sA = cls._check_adjacency(sA)
+
+        # Get the subgraph of sA corresponding to sigma
+        sA_sig = sA[np.ix_(sigma, sigma)]
+
+        # Create empty arrays to hold our results
+        tf_param_ind = np.zeros((len(k_of_interest),1), dtype=bool)
+        tf_survives = np.zeros((len(k_of_interest),1), dtype=bool)
+
+        # Get the domination relationships needed for later
+        all_k, _, all_sigma, dom_type = dom
+        dom = zip(all_k, all_sigma, dom_type)
+        
+        # Make sure that sigma is a permitted motif to begin with, otherwise we cannot check its survival
+        assert cls.is_permitted(sA_sig), "Sigma must be a permitted motif to begin with"
+        
+        # A mini UID check to see if sigma is UID
+        def _sig_uid(sA, sigma):
+            sA_sig = sA[np.ix_(sigma, sigma)]
+            row_sums = sA_sig.sum(axis=1)
+            tf = np.all(row_sums == row_sums[0])
+            if tf:
+                return True, row_sums[0]
+            else:
+                return False, 0
+
+        # Check if sigma is UID
+        tf_uid, d_in = _sig_uid(sA, sigma)
+
+        # If sigma is UID...
+        if tf_uid:
+            # It will be parameter independent
+            tf_param_ind = np.ones((len(k_of_interest),1), dtype=bool)
+
+            # Check if it is target free to determine if it survives
+            d_k = sA[np.ix_(k_of_interest,sigma)] @ np.ones((len(sigma),1))
+            tf_survives = d_k<=d_in
+
+            # Return the results
+            return tf_param_ind, tf_survives, tf_uid
+        
+        # Otherwise if NOT UID... (Check domination)
+        else: 
+            # Check each possible dominator...
+            for l,k in enumerate(k_of_interest):
+
+                # See if sigma survives with current parameters
+                sig_cup_k = np.append(sigma, k)
+                tf_fp = cls.check_fp(sA[np.ix_(sig_cup_k, sig_cup_k)],list(range(len(sigma))))[0]
+
+                # If it does survive...
+                if tf_fp:
+                    # Could domination kill it with different parameters
+                    tf_survives[l] = True
+                    if any(k-1 in k_of_interest and set(sigma) == set([i-1 for i in sigma_dom.tolist()]) for k, sigma_dom, dom_type in dom if dom_type == 'inside-out'):
+                        tf_param_ind[l] = True
+                
+                # If it does not survive...
+                else:
+                    # Could domination save it with different parameters
+                    tf_survives[l] = False
+                    if any(k-1 in k_of_interest and set(sigma) == set([i-1 for i in sigma_dom.tolist()]) for k, sigma_dom, dom_type in dom if dom_type == 'outside-in'):
+                        tf_param_ind[l] = True
+
+        # Return results
+        return tf_param_ind, tf_survives, tf_uid
+    
+    @classmethod
+    def _check_survival_all_embeddings(cls, sA_sig, sigma):
+        """ A method for checking the survival of a particular sigma with respect to all possible domination embeddings.
+
+        Parameters
+        ----------
+        sA_sig : array-like
+            The adjacency matrix of the subgraph corresponding to sigma.
+        sigma : array-like
+            The subgraph we are checking the survival of.
+
+        Returns
+        -------
+        poss_param_dep_embeddings : array-like
+            An array of embeddings that may lead to parameter dependence.
+        """
+        # Validates and converts the given adjacency matrix
+        sA_sig = cls._check_adjacency(sA_sig)
+
+        # Let n be the size of the matrix given
+        n=sA_sig.shape[0]
+
+        # Get all of the embeddings to check
+        embeddings = cls._make_all_embeddings(n)
+
+        # Count how many embeddings we need to check
+        num_embed= embeddings.shape[0]
+
+        # Create the larger adjacency matrix to check the embeddings in
+        sA = np.zeros((n+num_embed,n+num_embed), dtype=int)
+
+        # Fill in the top left corner with sA_sig
+        sA[np.ix_(sigma, sigma)] = sA_sig
+
+        # Get the possible dominator nodes
+        k_of_interest = list(set(range(sA.shape[0])) - set(sigma))
+
+        # Fill in the bottom left corner with the embeddings we are checking
+        sA[np.ix_(k_of_interest, sigma)] = embeddings
+
+        # Find domination relationships to pass to the survival check method
+        dom = cls.find_graphical_domination(sA_sig, types_to_look_for=['inside-out', 'outside-in'])
+
+        # Check the survival of sigma with respect to each possible dominator node, and whether that survival is parameter independent
+        tf_param_ind, _, _ = cls._check_survival_param_ind(sA, sigma, k_of_interest, dom)
+
+        # Select the embeddings that aren't definitely independent...
+        idx_poss_param_dep = np.where(~tf_param_ind)[0]
+        poss_param_dep_embeddings=sA[np.ix_(np.asarray(k_of_interest)[idx_poss_param_dep],sigma)]
+
+        # And return them
+        return poss_param_dep_embeddings
+    
+    @classmethod
+    def core_is_param_indep(cls, sA):
+        sA = cls._check_adjacency(sA)
+        # We'll have to check each poss_param_dep_embedding symbollically to see if any create inequalities that could be satisfied by some parameters and not others.
+        pass
+
+    @classmethod
+    def has_chaining_overlap(cls, sA,o1,t1,o2,t2):
+        sA = cls._check_adjacency(sA)
+        g1 = [o1,t1]
+        g2 = [o2,t2]
+
+        if set(t2)<=set(o2):
+            if len(set(o1)&set(t2))==0:
+                g2_minus_g1 = set(g2)-set(g1)
+                o1_in_g2 = set(o1) & set([o2,t2])
+                if sum(sum(sA[np.ix_(list(o1_in_g2),list(g2_minus_g1))])) == 0:
+                    return True
+        else:
+            return False
+        
+    @classmethod
+    def is_simply_added(cls, sA, tau, omega):
+        sA = cls._check_adjacency(sA)
+        sub_mat = sA[np.ix_(tau, omega)]
+        col_sums = np.sum(sub_mat, axis=0)
+        num_proj = len([c for c in col_sums if c == len(tau)])
+        num_non_proj = len([c for c in col_sums if c == 0])
+        if(num_non_proj+num_proj) == len(omega):
+            return True
+        else:
+            return False
+        
+    @classmethod
+    def find_simply_embedded_taus(cls, sA):
+        sA = cls._check_adjacency(sA)
+        n = sA.shape[0]
+        se_taus = []
+
+        for i in range(1,n):
+            combos = combinations(range(n), i)
+            for j,tau in enumerate(combos):
+                omega = list(set(range(n)) - set(tau))
+                if cls.is_simply_added(sA, tau, omega):
+                    se_taus.append(tau)
+
+        return se_taus
+
 # Checks for package update on import
 CTLN._check_for_updates()
+
+sA = np.array([
+    [0,0,0,1,1],
+    [1,0,1,0,0],
+    [1,1,0,0,0],
+    [0,1,1,0,0],
+    [0,1,0,1,0]
+])
+#print(CTLN.get_fp(sA))
+#print(CTLN.check_si_survival(sA, [0,1,2,3,4]))
+#print(CTLN.get_fp_by_si(sA))
+print(CTLN.get_symbolic_w(sA))
+
+#CTLN.set_params(epsilon=0.1, delta=0.12)
+#CTLN.set_params(epsilon=0.25, delta=0.5)
+#print(CTLN.find_graphical_domination(sA, types_to_look_for=['inside-out', 'outside-in']))
+#print(CTLN._check_survival_all_embeddings(sA[np.ix_([0,1,2,3],[0,1,2,3])], [0,1,2,3]))
+#print(CTLN._check_survival_param_ind(sA, [0,1,2,3], [4]))
+#print(CTLN.get_fp(sA))
