@@ -4,6 +4,8 @@
 
 Reading this on a site other than github? You can find all of the information you may need on this package at our github repo [here](https://github.com/liv-kami/py_ctln).
 
+Looking for documentation? Click [here!](https://liv-kami.github.io/py_ctln/py_ctln.html)
+
 ### Navigation Shortcuts:
 [What is py_ctln?](#what-is-py_ctln)\
 [Installation](#installation)\
