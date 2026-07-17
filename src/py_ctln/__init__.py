@@ -1,22 +1,24 @@
 # ─────────────────────────── Libraries ────────────────────────────
 
 import numpy as np
-from itertools import combinations, permutations
+from itertools import combinations, permutations, chain
 from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
-import matplotlib.patches as mpatches
 import matplotlib.lines as mlines
 import pickle
 from importlib.resources import files
+from importlib.metadata import version
+import requests
 from pathlib import Path
 import multiprocessing as mp
+import math
 import sympy as sp
 from sympy import symbols, Matrix, zeros, latex, factor
 
 # ────────────────────── Known Networks Class ──────────────────────
 
-class _KnownNetworks:
+class KnownNetworks:
     """A helper class for managing requests to use existing lists of
     known classes of CTLNs. This class allows us to provide these lists
     without forcing the user to load them all ahead of time, as these
@@ -25,34 +27,6 @@ class _KnownNetworks:
     Note that this class is not designed to be used *directly*,
     but rather a user should access these lists through the CTLN class
     via CTLN.collections.method_name_here()
-
-    Methods
-    -------
-    _mat_to_d6(sA)
-        Not intended for use by the end user. This handles the
-        conversion of an adjacency matrix to a d6 byte string.
-    _mats_to_d6(cls, sAlist, save_to)
-        Not intended for use by the end user. This handles converting a
-        list of adjacency matrices to d6 byte strings.
-    _d6_to_mat(ds)
-        Not intended for use by the end user. This handles converting a
-        d6 byte string to an adjacency matrix.
-    _read_d6_file(cls, path)
-        Not intended for use by the end user. This handles reading a
-        list of adjacency matrices from a d6 file.
-    _load_data(path_ref)
-        Not intended for use by the end user. This handles the loading of
-        the pkl files and returns the list for the user
-    _convert_mat_to_pkl(mat_ref, save_name, mat_part)
-        Not intended for use by the end user. This handles the
-        conversion of old .mat files to the python-preferred .pkl format.
-    all_n(n)
-        Returns a list of all CTLNs with n nodes.
-    core_n(n)
-        Returns a list of all CTLNs with n nodes that are *core motifs*.
-    strongly_core_n(n)
-        Returns a list of all CTLNs with n nodes that are *strongly core
-        motifs*.
     """
 
     @staticmethod
@@ -379,91 +353,12 @@ class _KnownNetworks:
 class CTLN:
     """A class used to provide functions for Combinatorial Threshold
     Linear Network (CTLN) calculations and research.
-
-    ...
-
-    Attributes
-    ----------
-    epsilon : float, optional
-        The value to use for the epsilon parameter (default is 0.51).
-    delta : float, optional
-        The value to use for the delta parameter (default is 1.76).
-    collections : _KnownNetworks
-        A pointer for accessing collections of known CTLNs.
-
-    Methods
-    -------
-    _get_graph_colors(n)
-        A method to create colors for graphing a CTLN
-    _check_adjacency(sA)
-        A method to check the validity of an adjacency matrix
-        to prevent errors.
-    set_params(epsilon, delta)
-        Allows the user to define the values for the parameters epsilon
-        and delta
-    get_w_mat(sA)
-        Creates the W matrix from the adjacency matrix.
-    check_fp(sA, sig)
-        Checks if a given subgraph (sigma) is a fixed point support
-        of a given CTLN
-    check_stability(sA, sig)
-        Checks whether a given subgraph (sigma) is a stable fixed point
-        or not (unstable)
-    get_fp(sA)
-        A method that finds all of the fixed points, their supports,
-        and their stability for a given CTLN.
-    threshlin_ode(sA,t,x0)
-        A method for solving the system of piecewise linear ordinary
-        differential equations to get the firing rates of the neurons
-        over time for a given set of initial conditions.
-    get_soln(sA)
-        A method for obtaining the solution for a CTLN
-    plot_graph(sA, ax,show)
-        A method that plots the graph of the CTLN.
-    plot_soln(sA)
-        A method that plots both the graph and the solution of the CTLN.
-    run_ctln_model_script(sA)
-        An alias for plot_soln.
-    is_uid(sA)
-        A method for determining if a CTLN is uniform in-degree.
-    is_uod(sA)
-        A method for determining if a CTLN is uniform out-degree.
-    is_core(sA)
-        A method for determining if a CTLN is a core motif.
-    is_permitted(sA)
-        A method for determining if a CTLN is a permitted motif.
-    find_graphical_domination(sA,types_to_look_for)
-        A method for finding graphical domination relationships within a
-        CTLN
-    is_strongly_connected(sA)
-        A method for determining if a CTLN is strongly connected.
-    is_weakly_connected(sA)
-        A method for determining if a CTLN is weakly connected.
-    is_connected(sA)
-        A method for determining if a CTLN is connected (weakly or
-        strongly).
-    is_strongly_core(sA)
-        A method for determining if a CTLN is *strongly* core motif.
-    is_hamiltonian(sA)
-        A method for determining if a CTLN is hamiltonian (Contains a
-        hamiltonian cycle of size n)
-    get_projection_direction(sA)
-        A method for getting the projection direction to use for
-        plotting the projection of the solution onto two dimensions.
-    plot_projection(sA, dim1, dim2, ax, show)
-        A method for plotting the projection of the solution onto two
-        dimensions.
-    plot_grayscale(soln, ax)
-        A method for plotting the solution as a grayscale heatmap over time.
-    parallel_run(matrices, method, num_processes)
-        A method that applies a CTLN class method to multiple matrices
-        in parallel using multiprocessing for efficient batch processing.
     """
 
-    epsilon: float = 0.51
-    delta: float = 1.76
+    DEFAULT_EPSILON = 0.51
+    DEFAULT_DELTA = 1.76
 
-    collections = _KnownNetworks()
+    collections = KnownNetworks()
 
     @staticmethod
     def _get_graph_colors(n):
@@ -566,30 +461,7 @@ class CTLN:
         return sA
 
     @classmethod
-    def set_params(cls, epsilon: float = 0.51, delta: float = 1.76):
-        """Allows the user to define the values for the parameters
-        epsilon and delta
-
-        Parameters
-        ----------
-        epsilon : float, optional
-            The value to use for the epsilon parameter (default is 0.51).
-        delta : float, optional
-            The value to use for the delta parameter (default is 1.76).
-        """
-
-        # Checks that Delta and Epsilon are in their legal ranges
-        if not delta > 0 : raise ValueError('Delta must be greater than 0')
-        if not (0 < epsilon < (delta / (delta + 1))):
-            raise ValueError('Epsilon must be positive and less than ('
-                             'delta/(delta+1))')
-
-        # Sets the parameter values from the given epsilon and delta
-        cls.epsilon = epsilon
-        cls.delta = delta
-
-    @classmethod
-    def get_w_mat(cls, sA):
+    def get_w_mat(cls, sA,epsilon=DEFAULT_EPSILON, delta=DEFAULT_DELTA):
         """Creates the W matrix from the adjacency matrix.
 
         The W matrix, when constructed from an adjacency matrix,
@@ -602,6 +474,10 @@ class CTLN:
         ----------
         sA : array-like
             The adjacency matrix to create the W matrix from.
+        epsilon : float, optional
+            The value to use for the epsilon parameter (default is 0.51).
+        delta : float, optional
+            The value to use for the delta parameter (default is 1.76).
 
         Returns
         -------
@@ -613,7 +489,7 @@ class CTLN:
         sA = cls._check_adjacency(sA)
 
         # Create the W matrix using the established shortcut formula.
-        W = sA * (-1 + cls.epsilon) + (1 - sA) * (-1 - cls.delta)
+        W = sA * (-1 + epsilon) + (1 - sA) * (-1 - delta)
 
         # Replace the diagonals of the constructed W with zeroes to
         # finalize its construction.
@@ -645,6 +521,10 @@ class CTLN:
             The sigma/subgraph of the CTLN to check.
         b : array-like, optional
             The b vector to use. (Defaults to a column of 1s)
+        epsilon : float, optional
+            The value to use for the epsilon parameter (default is 0.51).
+        delta : float, optional
+            The value to use for the delta parameter (default is 1.76).
 
         Returns
         -------
@@ -659,7 +539,7 @@ class CTLN:
         # Validates the provided adjacency matrix and constructs the W
         # matrix for it
         sA = cls._check_adjacency(sA)
-        W = cls.get_w_mat(sA)
+        W = cls.get_w_mat(sA, epsilon=kwargs.get('epsilon', cls.DEFAULT_EPSILON), delta=kwargs.get('delta', cls.DEFAULT_DELTA))
 
         # Let n be the size of the ctln (number of rows/columns in W,
         # number of neurons, etc.)
@@ -725,7 +605,7 @@ class CTLN:
         return [is_fp, x_fp]
 
     @classmethod
-    def check_stability(cls, sA, sig):
+    def check_stability(cls, sA, sig, **kwargs):
         """Checks whether a given fixed point support (sigma) is a
         stable fixed point or not (unstable).
 
@@ -739,6 +619,10 @@ class CTLN:
         sig : array-like
             The sigma/subgraph of the CTLN for which we want to check
             the stability of its corresponding fixed point.
+        epsilon : float, optional
+            The value to use for the epsilon parameter (default is 0.51).
+        delta : float, optional
+            The value to use for the delta parameter (default is 1.76).
 
         Returns
         -------
@@ -752,7 +636,7 @@ class CTLN:
         # Validates the given adjacency matrix and constructs the
         # corresponding W matrix
         sA = cls._check_adjacency(sA)
-        W = cls.get_w_mat(sA)
+        W = cls.get_w_mat(sA, epsilon=kwargs.get('epsilon', cls.DEFAULT_EPSILON), delta=kwargs.get('delta', cls.DEFAULT_DELTA))
 
         # Let n be the size of the ctln (number of rows/columns in W,
         # number of neurons, etc.)
@@ -782,7 +666,7 @@ class CTLN:
         return [stable, eigvals]
 
     @classmethod
-    def get_fp(cls, sA):
+    def get_fp(cls, sA, **kwargs):
         """A method that finds all of the fixed points, their supports,
         and their stability for a given CTLN.
 
@@ -790,6 +674,10 @@ class CTLN:
         ----------
         sA : array-like
             The adjacency matrix of the CTLN.
+        epsilon : float, optional
+            The value to use for the epsilon parameter (default is 0.51).
+        delta : float, optional
+            The value to use for the delta parameter (default is 1.76).
 
         Returns
         -------
@@ -829,7 +717,7 @@ class CTLN:
                 sig = subgraphs[i]
 
                 # Check if sigma is a fixed point
-                is_fp, x_fp = cls.check_fp(sA, sig)
+                is_fp, x_fp = cls.check_fp(sA, sig, epsilon=kwargs.get('epsilon', cls.DEFAULT_EPSILON), delta=kwargs.get('delta', cls.DEFAULT_DELTA))
 
                 # If this sigma *is* a fixed point, add it to the fixpts
                 # list, add its support to the supports list, and add
@@ -838,7 +726,7 @@ class CTLN:
                     fixpts.append(np.transpose(x_fp))
                     t_sig = np.array(sig) + 1
                     supports.append(t_sig.tolist())
-                    stability.append(cls.check_stability(sA, sig)[0])
+                    stability.append(cls.check_stability(sA, sig, epsilon=kwargs.get('epsilon', cls.DEFAULT_EPSILON), delta=kwargs.get('delta', cls.DEFAULT_DELTA))[0])
 
         # Return the list of fixpts, supports, and stability
         return [fixpts, supports, stability]
@@ -866,6 +754,10 @@ class CTLN:
         b : array-like, optional
             Allows the user to set the b vector manually (Defaults to a
             column of 1s)
+        epsilon : float, optional
+            The value to use for the epsilon parameter (default is 0.51).
+        delta : float, optional
+            The value to use for the delta parameter (default is 1.76).
 
         Returns
         -------
@@ -889,7 +781,7 @@ class CTLN:
         # Validate and convert the adjacency matrix given and construct
         # the corresponding W matrix
         sA = cls._check_adjacency(sA)
-        W = cls.get_w_mat(sA)
+        W = cls.get_w_mat(sA, epsilon=kwargs.get('epsilon', cls.DEFAULT_EPSILON), delta=kwargs.get('delta', cls.DEFAULT_DELTA))
 
         # Let n be the size of the ctln (number of rows/columns in W,
         # number of neurons, etc.)
@@ -961,6 +853,10 @@ class CTLN:
             Defaults to random values between 0 and 0.1)
         b : array-like, optional
             The b vector to use (Defaults to a column of 1s times theta)
+        epsilon : float, optional
+            The value to use for the epsilon parameter (default is 0.51).
+        delta : float, optional
+            The value to use for the delta parameter (default is 1.76).
 
         Returns
         -------
@@ -1003,7 +899,7 @@ class CTLN:
             b = theta * np.ones((n, 1))
 
         # Compute and return the solution to the system of ODEs
-        return cls.threshlin_ode(sA=sA, b=b, t=t, x0=x0)
+        return cls.threshlin_ode(sA=sA, b=b, t=t, x0=x0, epsilon=kwargs.get('epsilon', cls.DEFAULT_EPSILON), delta=kwargs.get('delta', cls.DEFAULT_DELTA))
 
     @classmethod
     def plot_graph(cls, sA, ax=None, show=True):
@@ -1069,13 +965,19 @@ class CTLN:
         if show: plt.show()
 
     @classmethod
-    def plot_soln(cls, sA):
+    def plot_soln(cls, sA,**kwargs):
         """A method that plots both the graph and the solution of the CTLN.
+
+        (Note: plot_soln and run_ctln_model_script() are identical, they are just aliases of each other for ease of use.)
 
         Parameters
         ----------
         sA : array-like
             The adjacency matrix of the CTLN.
+        epsilon : float, optional
+            The value to use for the epsilon parameter (default is 0.51).
+        delta : float, optional
+            The value to use for the delta parameter (default is 1.76).
         """
 
         # Validates and converts the given adjacency matrix
@@ -1086,7 +988,7 @@ class CTLN:
         n = sA.shape[0]
 
         # Gets the solution for the given CTLN
-        soln = cls.get_soln(sA)
+        soln = cls.get_soln(sA, epsilon=kwargs.get('epsilon', cls.DEFAULT_EPSILON), delta=kwargs.get('delta', cls.DEFAULT_DELTA))
 
         # Creates the list of colors to use for plotting
         colors = cls._get_graph_colors(n)
@@ -1195,7 +1097,7 @@ class CTLN:
         return len(np.unique(np.sum(sA, axis=0))) == 1
 
     @classmethod
-    def is_core(cls, sA):
+    def is_core(cls, sA,**kwargs):
         """A method for seeing if a CTLN is core.
 
         A core motif is a CTLN that has exactly one fixed point support
@@ -1205,6 +1107,10 @@ class CTLN:
         ----------
         sA : array-like
             The adjacency matrix of the CTLN.
+        epsilon : float, optional
+            The value to use for the epsilon parameter (default is 0.51).
+        delta : float, optional
+            The value to use for the delta parameter (default is 1.76).
 
         Returns
         -------
@@ -1220,7 +1126,7 @@ class CTLN:
         n = sA.shape[0]
 
         # Get the list of fp supports for the CTLN
-        supports = cls.get_fp(sA)[1]
+        supports = cls.get_fp(sA, epsilon=kwargs.get('epsilon', cls.DEFAULT_EPSILON), delta=kwargs.get('delta', cls.DEFAULT_DELTA))[1]
 
         # Default to assuming the CTLN is *not* core
         is_core = False
@@ -1234,7 +1140,7 @@ class CTLN:
         return is_core
 
     @classmethod
-    def is_permitted(cls, sA):
+    def is_permitted(cls, sA,**kwargs):
         """A method for seeing if a CTLN is permitted.
 
         A permitted motif is a CTLN that has a fixed point support
@@ -1245,6 +1151,10 @@ class CTLN:
         ----------
         sA : array-like
             The adjacency matrix of the CTLN.
+        epsilon : float, optional
+            The value to use for the epsilon parameter (default is 0.51).
+        delta : float, optional
+            The value to use for the delta parameter (default is 1.76).
 
         Returns
         -------
@@ -1260,7 +1170,7 @@ class CTLN:
         n = sA.shape[0]
 
         # Get the list of fp supports for the CTLN
-        supports = cls.get_fp(sA)[1]
+        supports = cls.get_fp(sA, epsilon=kwargs.get('epsilon', cls.DEFAULT_EPSILON), delta=kwargs.get('delta', cls.DEFAULT_DELTA))[1]
 
         # Checks if any fixed point support contains all nodes
         is_permitted = np.any([len(sup) == n for sup in supports])
@@ -1636,7 +1546,7 @@ class CTLN:
         return direction_vector
 
     @classmethod
-    def plot_projection(cls, sA, tstart=40, tstop=80, direction=None, ax=None, show=True):
+    def plot_projection(cls, sA, tstart=40, tstop=80, direction=None, ax=None, show=True, **kwargs):
         """A method for plotting the projection of the solution onto two
         dimensions.
 
@@ -1652,13 +1562,17 @@ class CTLN:
             The axes to plot on. (Defaults to creating a new one)
         show : bool, optional
             Whether to show the graph after creation. (Defaults to True)
+        epsilon : float, optional
+            The value to use for the epsilon parameter (default is 0.51).
+        delta : float, optional
+            The value to use for the delta parameter (default is 1.76).
         """
 
         # Validates and converts the given adjacency matrix
         sA = cls._check_adjacency(sA)
 
         # Gets the solution for the given CTLN
-        soln = cls.get_soln(sA)
+        soln = cls.get_soln(sA, epsilon=kwargs.get('epsilon', cls.DEFAULT_EPSILON), delta=kwargs.get('delta', cls.DEFAULT_DELTA))
 
         # Creates the figure and axes for plotting if none provided
         if ax is None:
@@ -1749,3 +1663,224 @@ class CTLN:
         
         # Return the results in the same order as the input matrices
         return results
+
+    @staticmethod
+    def _check_for_updates():
+        """
+        A method for checking if there is an update available for the py_ctln package.
+        """
+
+        # Define the package name to check
+        package_name = 'py_ctln'
+
+        try:
+            # Get the currently used version of the package
+            current_version = version(package_name)
+
+            # Get the latest release version number from pip
+            response = requests.get(f"https://pypi.org/pypi/{package_name}/json", timeout=1)
+            latest_version = response.json()['info']['version']
+
+            # Alert the user if there is an update available, otherwise do nothing
+            if current_version != latest_version:
+                print(f"Update available for {package_name}: {current_version} -> {latest_version}")
+                print(f"Run 'pip install --upgrade {package_name}' to update.")
+
+        except Exception as e:
+            # If there was an error (e.g. no internet connection), just pass and do not alert the user.
+            pass
+
+    @classmethod
+    def is_circulant(cls, sA):
+        """ A method for determining if a CTLN is circulant.
+
+        A circulant graph is one where there is some ordering of the nodes such
+        that the adjacency matrix is circulant. A circulant matrix is one
+        where each column is a shifted version of the previous column.
+
+        Parameters
+        ----------
+        sA : array-like
+            The adjacency matrix of the CTLN.
+
+        Returns
+        -------
+        is_circulant : bool
+            True if the CTLN is circulant, False otherwise.
+        ordering : array-like
+            The ordering of the nodes that makes the adjacency matrix circulant
+        forward_edges : array-like
+            The pattern used for circulant graph notation
+        """
+
+        # Validates and converts the given adjacency matrix
+        sA = cls._check_adjacency(sA)
+
+        # Let n be the size of the ctln (number of rows/columns in W,
+        # number of neurons, etc.)
+        n = sA.shape[0]
+
+        # Check every possible ordering of the nodes
+        for perm in permutations(range(1,n)):
+
+            # Get current ordering to check
+            current_perm = [0] + list(perm)
+
+            # Get the adjacency matrix in that ordering
+            sA_new = sA[np.ix_(current_perm, current_perm)]
+
+            # Shift each column as appropriate
+            sA_shifted = np.zeros_like(sA_new)
+
+            # Check if matrix is circulant
+            for j in range(n):
+                sA_shifted[:,j] = np.roll(sA_new[:,j],-j)
+
+            # Get the first column
+            first_col = sA_shifted[:,0]
+
+            # Check that the proper pattern appears
+            if np.allclose(sA_shifted, np.tile(first_col.reshape(-1,1), (1,n))):
+
+                # Return results
+                return True, [i+1 for i in current_perm], np.nonzero(first_col)[0].tolist()
+        
+        # If not circulant, return false
+        return False, [], []
+    
+    @classmethod
+    def is_clique_union(cls, sA, tau_partition):
+        """ A method for determining if a CTLN is a clique union.
+
+        Parameters
+        ----------
+        sA : array-like
+            The adjacency matrix of the CTLN.
+        tau_partition : list of lists
+            A partition of the nodes into subsets.
+        
+        Returns
+        -------
+        True if the CTLN is a clique union with respect to the given partition, False otherwise.
+        """
+
+        # Validates and converts the given adjacency matrix
+        sA = cls._check_adjacency(sA)
+
+        # Get number of parts in the partition
+        n_parts = len(tau_partition)
+
+        # Check each part
+        for i in range(n_parts):
+            for j in range(i+1, n_parts):
+
+                # Check each pair of parts within the partition is bidirectionally connected
+                tau_a = np.asarray(tau_partition[i])
+                tau_b = np.asarray(tau_partition[j])
+                expected = tau_a.size * tau_b.size
+
+                # If any pair of parts of the partition are not, return False.
+                if sA[np.ix_(tau_a, tau_b)].sum() != expected or sA[np.ix_(tau_b, tau_a)].sum() != expected:
+                    return False
+                
+        # Return true if clique union.
+        return True
+
+    @classmethod
+    def is_directional(cls, sA, omega, tau):
+        """ A method for determining if a CTLN is directional with respect to a given 
+            omega and tau partition.
+
+        Parameters
+        ----------
+        sA : array-like
+            The adjacency matrix of the CTLN.
+        omega : array-like
+            A subset of the nodes in the CTLN.
+        tau : array-like
+            A subset of the nodes in the CTLN, disjoint from omega and together with omega 
+            containing all nodes in the CTLN.
+
+        Returns
+        -------
+        directional : bool
+            True if the CTLN is directional with respect to the given omega and tau, False otherwise
+        sigma_fail : list
+            If the CTLN is not directional, a list of the nodes in the sigma that fails the directional condition.
+        """
+
+        # Validates and converts the given adjacency matrix
+        sA = cls._check_adjacency(sA)
+
+        # Let n be the size of the ctln (number of rows/columns in W,
+        # number of neurons, etc.)
+        n = sA.shape[0]
+
+        # Turn omega and tau into sets
+        omega_s = set(omega)
+        tau_s = set(tau)
+
+        # Ensure omega and tau are disjoint
+        if len(omega_s.intersection(tau_s))>0:
+            raise ValueError("Omega and Tau must be disjoint.")
+        
+        # Ensure omega and tau together contain all nodes
+        if len(omega_s) + len(tau_s) < n:
+            raise ValueError("Omega and Tau together must contain all nodes.")
+        
+        # Set default returns
+        directional = True
+        sigma_fail : list[int] = []
+
+        # Check every sigma
+        for mask in range(1, 1 << n):
+            sigma = {i for i in range(n) if (mask >> i) & 1}
+
+            # If sigma contains any node from omega
+            if sigma & omega_s:
+
+                # Check there is some form of domination, as required as by the definition, and return false if none found
+                j_of_interest = sigma & omega_s
+                all_k, all_j, all_sigma, _ = cls.find_graphical_domination(sA, types_to_look_for=['inside-in'])
+                if not any(j-1 in j_of_interest and set(sigma) == set([i-1 for i in sigma_dom.tolist()]) for j, sigma_dom in zip(all_j, all_sigma)):
+                    k_of_interest = set(range(n)) - sigma
+                    all_k, all_j, all_sigma, _ = cls.find_graphical_domination(sA, types_to_look_for=['outside-in'])
+                    if not any(k-1 in k_of_interest and j-1 in j_of_interest and set(sigma) == set([i-1 for i in sigma_dom.tolist()]) for k,j, sigma_dom in zip(all_k, all_j, all_sigma)):
+                        directional = False
+                        sigma_fail = sorted(sigma)
+                        return directional, sigma_fail
+        
+        # If domination conditions hold, return true
+        return directional, sigma_fail
+    
+    @staticmethod
+    def get_circulant_graph(n, forward_edges):
+        """ A method for generating the adjacency matrix of a circulant graph.
+
+        Parameters
+        ----------
+        n : int
+            The number of nodes in the circulant graph.
+        forward_edges : list of ints
+            A list of the indices of the forward edges in the circulant graph. 
+            For example, if forward_edges = [1, 3], then each node i sends to nodes (i+1) mod n and (i+3) mod n.
+
+        Returns
+        -------
+        sA : array-like
+            The adjacency matrix of the circulant graph.
+        """
+
+        # Create an empty adjacency matrix
+        sA = np.zeros((n,n), dtype=int)
+
+        # Fill in the adjacency matrix according to the forward edges
+        for i in range(n):
+            for edge in forward_edges:
+                sA[(i + edge) % n, i] = 1
+        
+        # Return the adjacency matrix
+        return sA
+
+# Checks for package update on import
+CTLN._check_for_updates()

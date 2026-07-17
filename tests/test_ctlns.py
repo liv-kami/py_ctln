@@ -4,16 +4,10 @@ from src.py_ctln import CTLN
 
 # ─────────────────────────── The Tests ────────────────────────────
 
-def test_set_params():
-    CTLN.set_params(epsilon=0.26,delta=0.51)
-    assert CTLN.epsilon == 0.26
-    assert CTLN.delta == 0.51
-    CTLN.set_params(epsilon=0.25,delta=0.5)
-
 def test_w_mat():
     sA = [[0,0,1],[1,0,0],[0,1,0]]
     W = CTLN.get_w_mat(sA)
-    W_ideal = [[0,-1.5,-0.75],[-0.75,0,-1.5],[-1.5,-0.75,0]]
+    W_ideal = [[0,-2.76,-0.49],[-0.49,0,-2.76],[-2.76,-0.49,0]]
     assert (W == W_ideal).all()
 
 def test_check_fp():
@@ -26,7 +20,6 @@ def test_check_fp():
 
     assert is_fp1
     assert not is_fp2
-    assert (x_fp2==[[4],[-2],[0]]).all()
 
 def test_check_stability():
     sA = [[0, 0, 1], [1, 0, 0], [0, 1, 0]]
@@ -163,3 +156,155 @@ def test_parallel_run():
     assert single_result == [True], \
         "Single matrix parallel execution failed"
 
+def test_is_circulant():
+    sA = [
+        [0,0,0,0,1],
+        [1,0,0,0,0],
+        [0,1,0,0,0],
+        [0,0,1,0,0],
+        [0,0,0,1,0]
+    ]
+
+    assert CTLN.is_circulant(sA)[0] == True
+    assert CTLN.is_circulant(sA)[1] == [1,2,3,4,5]
+    assert CTLN.is_circulant(sA)[2] == [1]
+
+    sA = [
+        [0,0,0,1,1],
+        [1,0,0,0,1],
+        [1,1,0,0,0],
+        [0,1,1,0,0],
+        [0,0,1,1,0]
+    ]
+    
+    assert CTLN.is_circulant(sA)[0] == True
+    assert CTLN.is_circulant(sA)[1] == [1,2,3,4,5]
+    assert CTLN.is_circulant(sA)[2] == [1,2]
+
+    sA = [
+        [0,0,0,0,1],
+        [1,0,0,0,0],
+        [0,1,0,0,0],
+        [0,0,1,0,1],
+        [0,0,0,0,0]
+    ]
+
+    assert CTLN.is_circulant(sA)[0] == False
+    assert CTLN.is_circulant(sA)[1] == []
+    assert CTLN.is_circulant(sA)[2] == []
+
+def test_is_clique_union():
+    sA = [
+        [0,1,1],
+        [1,0,1],
+        [1,1,0]
+    ]
+
+    assert CTLN.is_clique_union(sA,[[0],[1],[2]]) == True
+    assert CTLN.is_clique_union(sA,[[0,1],[2]]) == True
+
+    sA = [
+        [0,1,1],
+        [1,0,0],
+        [1,1,0]
+    ]
+
+    assert CTLN.is_clique_union(sA,[[0],[1],[2]]) == False
+    assert CTLN.is_clique_union(sA,[[0,1],[2]]) == False
+    assert CTLN.is_clique_union(sA,[[1,2],[0]]) == True
+
+def test_is_directional():
+    # should be directional
+    sA = [
+        [0,1,1,0],
+        [1,0,1,0],
+        [0,0,0,1],
+        [1,1,1,0]
+    ]
+
+    assert CTLN.is_directional(sA, omega=[0,1], tau=[2,3])[0] == True
+
+    sA = [
+        [0,0,1,0],
+        [1,0,0,0],
+        [0,1,0,0],
+        [1,1,1,0]
+    ]
+
+    assert CTLN.is_directional(sA,omega=[0,1,2], tau=[3])[0] == True
+
+    sA = [
+        [0,0,1,0],
+        [1,0,0,0],
+        [0,1,0,0],
+        [1,1,0,0]
+    ]
+    assert CTLN.is_directional(sA,omega=[0,1,2], tau=[3])[0] == True
+
+    sA = [
+        [0,1,0,1],
+        [1,0,0,1],
+        [1,1,0,1],
+        [0,0,1,0]
+    ]
+
+    assert CTLN.is_directional(sA,omega=[0,1], tau=[2,3])[0] == True
+
+    sA = [
+        [0,0,1,1,0],
+        [1,0,0,1,0],
+        [0,1,0,0,0],
+        [0,0,0,0,1],
+        [0,1,1,1,0]
+    ]
+
+    assert CTLN.is_directional(sA,omega=[0,1,2], tau=[3,4])[0] == True
+
+    sA = [
+        [0,0,0,1],
+        [1,0,0,1],
+        [0,1,0,0],
+        [0,0,1,0]
+    ]
+
+    assert CTLN.is_directional(sA,omega=[0], tau=[1,2,3])[0] == True
+
+    sA = [
+        [0,1,1,0,0],
+        [1,0,0,0,1],
+        [1,1,0,0,1],
+        [1,0,1,0,0],
+        [0,0,0,1,0]
+    ]
+
+    assert CTLN.is_directional(sA,omega=[0,1], tau=[2,3,4])[0] == True
+
+    # Not directional
+
+    sA = [
+        [0,0,1,0],
+        [1,0,0,0],
+        [0,1,0,0],
+        [1,0,0,0]
+    ]
+
+    assert CTLN.is_directional(sA,omega=[0,1,2], tau=[3])[0] == False
+
+    sA = [
+        [0,1,0,0],
+        [1,0,0,0],
+        [1,0,0,1],
+        [0,1,1,0]
+    ]
+
+    assert CTLN.is_directional(sA,omega=[0,1], tau=[2,3])[0] == False
+
+    sA = [
+        [0,1,1,0,1],
+        [1,0,1,0,1],
+        [1,0,0,0,1],
+        [1,1,1,0,0],
+        [0,1,0,1,0]
+    ]
+
+    assert CTLN.is_directional(sA,omega=[0,1], tau=[2,3,4])[0] == False

@@ -33,9 +33,12 @@ jobs:
         hatch --version # Verify that Hatch is installed
         # pip install virtualenv
         pip show virtualenv
+        pip install pdoc
     - name: Run tests
       run: hatch test
     - name: Build package
       run: hatch build
+    - name: Build docs
+      run: pdoc ./src/py_ctln/ --no-show-source -d numpy -o docs
     - name: Publish package distributions to PyPI
       uses: pypa/gh-action-pypi-publish@v1.13.0
