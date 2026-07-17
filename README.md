@@ -58,7 +58,7 @@ pip install py_ctln==VERSION_GOES_HERE
 
 If you're looking to update an existing installation, we recommend using the following command
 ```
-pip install py_ctln --force-reinstall
+pip install --upgrade py_ctln
 ```
 
 pip has some other features that can be useful in particular cases, and more information on that can be found on pip's 
