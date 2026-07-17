@@ -6,3 +6,4 @@ tests/__pycache__/*
 ./idea/*
 .DS_Store
 liv_scratch_pad.py
+run_before_push.sh
