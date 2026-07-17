@@ -91,6 +91,8 @@ code
 CTLN.collections.type_of_collection(parameters)
 ```
 
+For more documentation, look in the "docs" folder of the repository!
+
 ### !!! Important Note !!!
 Many of the functions in the package rely on a user's defined **adjacency matrix**. Do note that CTLNs use an atypical 
 definition of such a matrix, such that the more common definition of an adjacency matrix will need to be transposed to 
@@ -101,15 +103,6 @@ If you encounter issues or unexpected behavior/results, **this is the first plac
 #### More Questions?
 
 More in-depth usage information and instructions can be found in the [official documentation](https://github.com/liv-kami/py_ctln/wiki).
-
-## Resources, References, and Background
-
-A list of references will be provided here in the future, both to various papers and publications on the topic of CTLNs
-as well as any code snippets, referenced topics, etc. that we may want to call back to.
-
-Beyond references, if you are looking for more information on CTLNs, how they work, and the mathematical foundations at play here,
-please see the wiki/docs page [here](https://github.com/liv-kami/py_ctln/wiki) where you can find more in depth explanations and
-resources on the topic.
 
 ## Contributing
 Think you have some good ideas to make the package better? Be they optimizations, new features, or something entirely different,
