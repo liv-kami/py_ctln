@@ -54,6 +54,11 @@ If you'd like to install a specific version, you may do so in the form
 pip install py_ctln==VERSION_GOES_HERE
 ```
 
+If you're looking to update an existing installation, we recommend using the following command
+```
+pip install py_ctln --force-reinstall
+```
+
 pip has some other features that can be useful in particular cases, and more information on that can be found on pip's 
 sites or through external sources. We typically recommend the simple installation of the latest version for the vast
 majority of use cases.
