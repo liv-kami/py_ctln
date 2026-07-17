@@ -96,7 +96,7 @@ code
 CTLN.collections.type_of_collection(parameters)
 ```
 
-For more documentation, look in the "docs" folder of the repository!
+For more documentation, click [here](https://liv-kami.github.io/py_ctln/py_ctln.html)!
 
 ### !!! Important Note !!!
 Many of the functions in the package rely on a user's defined **adjacency matrix**. Do note that CTLNs use an atypical 
