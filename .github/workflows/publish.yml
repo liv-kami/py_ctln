@@ -34,12 +34,12 @@ jobs:
         # pip install virtualenv
         pip show virtualenv
         pip install pdoc
-        pip install numpy
+        pip install requirements.txt
     - name: Run tests
       run: hatch test
-    - name: Build package
-      run: hatch build
     - name: Build docs
       run: pdoc ./src/py_ctln/ --no-show-source -d numpy -o docs
+    - name: Build package
+      run: hatch build
     - name: Publish package distributions to PyPI
       uses: pypa/gh-action-pypi-publish@v1.13.0
