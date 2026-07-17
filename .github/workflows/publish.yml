@@ -15,6 +15,7 @@ jobs:
     environment: release
     permissions:
       id-token: write # IMPORTANT: this permission is mandatory for trusted publishing
+      pages: write
 
     steps:
     - uses: actions/checkout@v5
