@@ -968,6 +968,8 @@ class CTLN:
     def plot_soln(cls, sA,**kwargs):
         """A method that plots both the graph and the solution of the CTLN.
 
+        (Note: This method and run_ctln_model_script() are identical, they are just aliases of each other for ease of use.)
+
         Parameters
         ----------
         sA : array-like
@@ -1879,8 +1881,6 @@ class CTLN:
         
         # Return the adjacency matrix
         return sA
-
-    # NOTE::: Here down is unfinished test code that is not designed to be used just yet!!!
 
 # Checks for package update on import
 CTLN._check_for_updates()
