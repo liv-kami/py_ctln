@@ -1884,7 +1884,3 @@ class CTLN:
 
 # Checks for package update on import
 CTLN._check_for_updates()
-
-sA = [[0,0,1],[1,0,0],[0,1,0]]
-
-print(CTLN.get_w_mat(sA))
