@@ -5,3 +5,4 @@ src/py_ctln/__pycache__/*
 tests/__pycache__/*
 ./idea/*
 .DS_Store
+liv_scratch_pad.py

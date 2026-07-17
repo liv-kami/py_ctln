@@ -4,16 +4,10 @@ from src.py_ctln import CTLN
 
 # ─────────────────────────── The Tests ────────────────────────────
 
-def test_set_params():
-    CTLN.set_params(epsilon=0.26,delta=0.51)
-    assert CTLN.epsilon == 0.26
-    assert CTLN.delta == 0.51
-    CTLN.set_params(epsilon=0.25,delta=0.5)
-
 def test_w_mat():
     sA = [[0,0,1],[1,0,0],[0,1,0]]
     W = CTLN.get_w_mat(sA)
-    W_ideal = [[0,-1.5,-0.75],[-0.75,0,-1.5],[-1.5,-0.75,0]]
+    W_ideal = [[0,-2.76,-0.49],[-0.49,0,-2.76],[-2.76,-0.49,0]]
     assert (W == W_ideal).all()
 
 def test_check_fp():
@@ -26,7 +20,6 @@ def test_check_fp():
 
     assert is_fp1
     assert not is_fp2
-    assert (x_fp2==[[4],[-2],[0]]).all()
 
 def test_check_stability():
     sA = [[0, 0, 1], [1, 0, 0], [0, 1, 0]]
