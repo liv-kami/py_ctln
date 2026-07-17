@@ -34,7 +34,10 @@ jobs:
         # pip install virtualenv
         pip show virtualenv
         pip install pdoc
-        pip install -r requirements.txt
+        pip install numpy
+        pip install scipy
+        pip install sympy
+        pip install matplotlib
     - name: Run tests
       run: hatch test
     - name: Build docs
