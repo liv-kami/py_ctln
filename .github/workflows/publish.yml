@@ -43,6 +43,13 @@ jobs:
       run: hatch test
     - name: Build docs
       run: pdoc ./src/py_ctln/ --no-show-source -d numpy -o docs
+    - name: upload artifacts
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: './docs'
+    - name: deploy docs
+      id: deployment
+      uses: actions/deploy-pages@v4
     - name: Build package
       run: hatch build
     - name: Publish package distributions to PyPI
