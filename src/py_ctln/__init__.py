@@ -26,7 +26,7 @@ class KnownNetworks:
 
     Note that this class is not designed to be used *directly*,
     but rather a user should access these lists through the CTLN class
-    via CTLN.collections.method_name_here()
+    via CTLN.collections.method_name_here()!
     """
 
     @staticmethod
