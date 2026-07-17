@@ -968,7 +968,7 @@ class CTLN:
     def plot_soln(cls, sA,**kwargs):
         """A method that plots both the graph and the solution of the CTLN.
 
-        (Note: This method and run_ctln_model_script() are identical, they are just aliases of each other for ease of use.)
+        (Note: plot_soln and run_ctln_model_script() are identical, they are just aliases of each other for ease of use.)
 
         Parameters
         ----------

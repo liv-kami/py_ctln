@@ -42,16 +42,13 @@
                     <a class="class" href="#CTLN">CTLN</a>
                             <ul class="memberlist">
                         <li>
-                                <a class="variable" href="#CTLN.epsilon">epsilon</a>
+                                <a class="variable" href="#CTLN.DEFAULT_EPSILON">DEFAULT_EPSILON</a>
                         </li>
                         <li>
-                                <a class="variable" href="#CTLN.delta">delta</a>
+                                <a class="variable" href="#CTLN.DEFAULT_DELTA">DEFAULT_DELTA</a>
                         </li>
                         <li>
                                 <a class="variable" href="#CTLN.collections">collections</a>
-                        </li>
-                        <li>
-                                <a class="function" href="#CTLN.set_params">set_params</a>
                         </li>
                         <li>
                                 <a class="function" href="#CTLN.get_w_mat">get_w_mat</a>
@@ -133,39 +130,6 @@
                         </li>
                         <li>
                                 <a class="function" href="#CTLN.get_circulant_graph">get_circulant_graph</a>
-                        </li>
-                        <li>
-                                <a class="function" href="#CTLN.get_symbolic_w">get_symbolic_w</a>
-                        </li>
-                        <li>
-                                <a class="function" href="#CTLN.s_i_of_sig">s_i_of_sig</a>
-                        </li>
-                        <li>
-                                <a class="function" href="#CTLN.check_si_survival">check_si_survival</a>
-                        </li>
-                        <li>
-                                <a class="function" href="#CTLN.get_fp_by_si">get_fp_by_si</a>
-                        </li>
-                        <li>
-                                <a class="function" href="#CTLN.get_param_indep_fps">get_param_indep_fps</a>
-                        </li>
-                        <li>
-                                <a class="function" href="#CTLN.core_is_param_indep">core_is_param_indep</a>
-                        </li>
-                        <li>
-                                <a class="function" href="#CTLN.has_chaining_overlap">has_chaining_overlap</a>
-                        </li>
-                        <li>
-                                <a class="function" href="#CTLN.is_simply_added">is_simply_added</a>
-                        </li>
-                        <li>
-                                <a class="function" href="#CTLN.find_simply_embedded_taus">find_simply_embedded_taus</a>
-                        </li>
-                        <li>
-                                <a class="function" href="#CTLN.all_cycles">all_cycles</a>
-                        </li>
-                        <li>
-                                <a class="function" href="#CTLN.get_random_graph">get_random_graph</a>
                         </li>
                 </ul>
 
@@ -323,26 +287,26 @@ Linear Network (CTLN) calculations and research.</p>
 </div>
 
 
-                            <div id="CTLN.epsilon" class="classattr">
+                            <div id="CTLN.DEFAULT_EPSILON" class="classattr">
                                 <div class="attr variable">
-            <span class="name">epsilon</span><span class="annotation">: float</span>        =
+            <span class="name">DEFAULT_EPSILON</span>        =
 <span class="default_value">0.51</span>
 
         
     </div>
-    <a class="headerlink" href="#CTLN.epsilon"></a>
+    <a class="headerlink" href="#CTLN.DEFAULT_EPSILON"></a>
     
     
 
                             </div>
-                            <div id="CTLN.delta" class="classattr">
+                            <div id="CTLN.DEFAULT_DELTA" class="classattr">
                                 <div class="attr variable">
-            <span class="name">delta</span><span class="annotation">: float</span>        =
+            <span class="name">DEFAULT_DELTA</span>        =
 <span class="default_value">1.76</span>
 
         
     </div>
-    <a class="headerlink" href="#CTLN.delta"></a>
+    <a class="headerlink" href="#CTLN.DEFAULT_DELTA"></a>
     
     
 
@@ -359,38 +323,12 @@ Linear Network (CTLN) calculations and research.</p>
     
 
                             </div>
-                            <div id="CTLN.set_params" class="classattr">
-                                <div class="attr function">
-                    <div class="decorator decorator-classmethod">@classmethod</div>
-
-        <span class="def">def</span>
-        <span class="name">set_params</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">cls</span>, </span><span class="param"><span class="n">epsilon</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.51</span>, </span><span class="param"><span class="n">delta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.76</span></span><span class="return-annotation">):</span></span>
-
-        
-    </div>
-    <a class="headerlink" href="#CTLN.set_params"></a>
-    
-            <div class="docstring"><p>Allows the user to define the values for the parameters
-epsilon and delta</p>
-
-<h6 id="parameters">Parameters</h6>
-
-<ul>
-<li><strong>epsilon</strong> (float, optional):
-The value to use for the epsilon parameter (default is 0.51).</li>
-<li><strong>delta</strong> (float, optional):
-The value to use for the delta parameter (default is 1.76).</li>
-</ul>
-</div>
-
-
-                            </div>
                             <div id="CTLN.get_w_mat" class="classattr">
                                 <div class="attr function">
                     <div class="decorator decorator-classmethod">@classmethod</div>
 
         <span class="def">def</span>
-        <span class="name">get_w_mat</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">cls</span>, </span><span class="param"><span class="n">sA</span>, </span><span class="param"><span class="o">**</span><span class="n">kwargs</span></span><span class="return-annotation">):</span></span>
+        <span class="name">get_w_mat</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">cls</span>, </span><span class="param"><span class="n">sA</span>, </span><span class="param"><span class="n">epsilon</span><span class="o">=</span><span class="mf">0.51</span>, </span><span class="param"><span class="n">delta</span><span class="o">=</span><span class="mf">1.76</span></span><span class="return-annotation">):</span></span>
 
         
     </div>
@@ -409,10 +347,10 @@ is defined to be a matrix of the same dimensions where:
 <ul>
 <li><strong>sA</strong> (array-like):
 The adjacency matrix to create the W matrix from.</li>
-<li>**<strong>kwargs</strong> (dict):
-Optionally, can include arguments for epsilon or delta
-if you don't want to change them globally and just want it
-for one run.</li>
+<li><strong>epsilon</strong> (float, optional):
+The value to use for the epsilon parameter (default is 0.51).</li>
+<li><strong>delta</strong> (float, optional):
+The value to use for the delta parameter (default is 1.76).</li>
 </ul>
 
 <h6 id="returns">Returns</h6>
@@ -458,6 +396,10 @@ The adjacency matrix of the CTLN.</li>
 The sigma/subgraph of the CTLN to check.</li>
 <li><strong>b</strong> (array-like, optional):
 The b vector to use. (Defaults to a column of 1s)</li>
+<li><strong>epsilon</strong> (float, optional):
+The value to use for the epsilon parameter (default is 0.51).</li>
+<li><strong>delta</strong> (float, optional):
+The value to use for the delta parameter (default is 1.76).</li>
 </ul>
 
 <h6 id="returns">Returns</h6>
@@ -479,7 +421,7 @@ in the system in the course of the fixed point.</li>
                     <div class="decorator decorator-classmethod">@classmethod</div>
 
         <span class="def">def</span>
-        <span class="name">check_stability</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">cls</span>, </span><span class="param"><span class="n">sA</span>, </span><span class="param"><span class="n">sig</span></span><span class="return-annotation">):</span></span>
+        <span class="name">check_stability</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">cls</span>, </span><span class="param"><span class="n">sA</span>, </span><span class="param"><span class="n">sig</span>, </span><span class="param"><span class="o">**</span><span class="n">kwargs</span></span><span class="return-annotation">):</span></span>
 
         
     </div>
@@ -499,6 +441,10 @@ The adjacency matrix of the CTLN.</li>
 <li><strong>sig</strong> (array-like):
 The sigma/subgraph of the CTLN for which we want to check
 the stability of its corresponding fixed point.</li>
+<li><strong>epsilon</strong> (float, optional):
+The value to use for the epsilon parameter (default is 0.51).</li>
+<li><strong>delta</strong> (float, optional):
+The value to use for the delta parameter (default is 1.76).</li>
 </ul>
 
 <h6 id="returns">Returns</h6>
@@ -519,7 +465,7 @@ The set of eigenvalues of the matrix -I+W_sig</li>
                     <div class="decorator decorator-classmethod">@classmethod</div>
 
         <span class="def">def</span>
-        <span class="name">get_fp</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">cls</span>, </span><span class="param"><span class="n">sA</span></span><span class="return-annotation">):</span></span>
+        <span class="name">get_fp</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">cls</span>, </span><span class="param"><span class="n">sA</span>, </span><span class="param"><span class="o">**</span><span class="n">kwargs</span></span><span class="return-annotation">):</span></span>
 
         
     </div>
@@ -533,6 +479,10 @@ and their stability for a given CTLN.</p>
 <ul>
 <li><strong>sA</strong> (array-like):
 The adjacency matrix of the CTLN.</li>
+<li><strong>epsilon</strong> (float, optional):
+The value to use for the epsilon parameter (default is 0.51).</li>
+<li><strong>delta</strong> (float, optional):
+The value to use for the delta parameter (default is 1.76).</li>
 </ul>
 
 <h6 id="returns">Returns</h6>
@@ -582,6 +532,10 @@ each neuron in the CTLN.</li>
 <li><strong>b</strong> (array-like, optional):
 Allows the user to set the b vector manually (Defaults to a
 column of 1s)</li>
+<li><strong>epsilon</strong> (float, optional):
+The value to use for the epsilon parameter (default is 0.51).</li>
+<li><strong>delta</strong> (float, optional):
+The value to use for the delta parameter (default is 1.76).</li>
 </ul>
 
 <h6 id="returns">Returns</h6>
@@ -635,6 +589,10 @@ The initial firing rates of each neuron in the CTLN. (
 Defaults to random values between 0 and 0.1)</li>
 <li><strong>b</strong> (array-like, optional):
 The b vector to use (Defaults to a column of 1s times theta)</li>
+<li><strong>epsilon</strong> (float, optional):
+The value to use for the epsilon parameter (default is 0.51).</li>
+<li><strong>delta</strong> (float, optional):
+The value to use for the delta parameter (default is 1.76).</li>
 </ul>
 
 <h6 id="returns">Returns</h6>
@@ -679,7 +637,7 @@ Whether to show the graph after creation. (Defaults to True)</li>
                     <div class="decorator decorator-classmethod">@classmethod</div>
 
         <span class="def">def</span>
-        <span class="name">plot_soln</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">cls</span>, </span><span class="param"><span class="n">sA</span></span><span class="return-annotation">):</span></span>
+        <span class="name">plot_soln</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">cls</span>, </span><span class="param"><span class="n">sA</span>, </span><span class="param"><span class="o">**</span><span class="n">kwargs</span></span><span class="return-annotation">):</span></span>
 
         
     </div>
@@ -687,11 +645,17 @@ Whether to show the graph after creation. (Defaults to True)</li>
     
             <div class="docstring"><p>A method that plots both the graph and the solution of the CTLN.</p>
 
+<p>(Note: plot_soln and run_ctln_model_script() are identical, they are just aliases of each other for ease of use.)</p>
+
 <h6 id="parameters">Parameters</h6>
 
 <ul>
 <li><strong>sA</strong> (array-like):
 The adjacency matrix of the CTLN.</li>
+<li><strong>epsilon</strong> (float, optional):
+The value to use for the epsilon parameter (default is 0.51).</li>
+<li><strong>delta</strong> (float, optional):
+The value to use for the delta parameter (default is 1.76).</li>
 </ul>
 </div>
 
@@ -702,7 +666,7 @@ The adjacency matrix of the CTLN.</li>
                     <div class="decorator decorator-classmethod">@classmethod</div>
 
         <span class="def">def</span>
-        <span class="name">run_ctln_model_script</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">cls</span>, </span><span class="param"><span class="n">sA</span></span><span class="return-annotation">):</span></span>
+        <span class="name">run_ctln_model_script</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">cls</span>, </span><span class="param"><span class="n">sA</span>, </span><span class="param"><span class="o">**</span><span class="n">kwargs</span></span><span class="return-annotation">):</span></span>
 
         
     </div>
@@ -710,11 +674,17 @@ The adjacency matrix of the CTLN.</li>
     
             <div class="docstring"><p>A method that plots both the graph and the solution of the CTLN.</p>
 
+<p>(Note: plot_soln and run_ctln_model_script() are identical, they are just aliases of each other for ease of use.)</p>
+
 <h6 id="parameters">Parameters</h6>
 
 <ul>
 <li><strong>sA</strong> (array-like):
 The adjacency matrix of the CTLN.</li>
+<li><strong>epsilon</strong> (float, optional):
+The value to use for the epsilon parameter (default is 0.51).</li>
+<li><strong>delta</strong> (float, optional):
+The value to use for the delta parameter (default is 1.76).</li>
 </ul>
 </div>
 
@@ -787,7 +757,7 @@ The adjacency matrix of the CTLN.</li>
                     <div class="decorator decorator-classmethod">@classmethod</div>
 
         <span class="def">def</span>
-        <span class="name">is_core</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">cls</span>, </span><span class="param"><span class="n">sA</span></span><span class="return-annotation">):</span></span>
+        <span class="name">is_core</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">cls</span>, </span><span class="param"><span class="n">sA</span>, </span><span class="param"><span class="o">**</span><span class="n">kwargs</span></span><span class="return-annotation">):</span></span>
 
         
     </div>
@@ -803,6 +773,10 @@ which includes every node of the graph.</p>
 <ul>
 <li><strong>sA</strong> (array-like):
 The adjacency matrix of the CTLN.</li>
+<li><strong>epsilon</strong> (float, optional):
+The value to use for the epsilon parameter (default is 0.51).</li>
+<li><strong>delta</strong> (float, optional):
+The value to use for the delta parameter (default is 1.76).</li>
 </ul>
 
 <h6 id="returns">Returns</h6>
@@ -820,7 +794,7 @@ True if the CTLN is a core motif, False otherwise</li>
                     <div class="decorator decorator-classmethod">@classmethod</div>
 
         <span class="def">def</span>
-        <span class="name">is_permitted</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">cls</span>, </span><span class="param"><span class="n">sA</span></span><span class="return-annotation">):</span></span>
+        <span class="name">is_permitted</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">cls</span>, </span><span class="param"><span class="n">sA</span>, </span><span class="param"><span class="o">**</span><span class="n">kwargs</span></span><span class="return-annotation">):</span></span>
 
         
     </div>
@@ -837,6 +811,10 @@ necessarily the <em>only</em> one, as in core motifs).</p>
 <ul>
 <li><strong>sA</strong> (array-like):
 The adjacency matrix of the CTLN.</li>
+<li><strong>epsilon</strong> (float, optional):
+The value to use for the epsilon parameter (default is 0.51).</li>
+<li><strong>delta</strong> (float, optional):
+The value to use for the delta parameter (default is 1.76).</li>
 </ul>
 
 <h6 id="returns">Returns</h6>
@@ -1106,7 +1084,7 @@ project onto.</li>
                     <div class="decorator decorator-classmethod">@classmethod</div>
 
         <span class="def">def</span>
-        <span class="name">plot_projection</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">cls</span>, </span><span class="param"><span class="n">sA</span>, </span><span class="param"><span class="n">tstart</span><span class="o">=</span><span class="mi">40</span>, </span><span class="param"><span class="n">tstop</span><span class="o">=</span><span class="mi">80</span>, </span><span class="param"><span class="n">direction</span><span class="o">=</span><span class="kc">None</span>, </span><span class="param"><span class="n">ax</span><span class="o">=</span><span class="kc">None</span>, </span><span class="param"><span class="n">show</span><span class="o">=</span><span class="kc">True</span></span><span class="return-annotation">):</span></span>
+        <span class="name">plot_projection</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="bp">cls</span>,</span><span class="param">	<span class="n">sA</span>,</span><span class="param">	<span class="n">tstart</span><span class="o">=</span><span class="mi">40</span>,</span><span class="param">	<span class="n">tstop</span><span class="o">=</span><span class="mi">80</span>,</span><span class="param">	<span class="n">direction</span><span class="o">=</span><span class="kc">None</span>,</span><span class="param">	<span class="n">ax</span><span class="o">=</span><span class="kc">None</span>,</span><span class="param">	<span class="n">show</span><span class="o">=</span><span class="kc">True</span>,</span><span class="param">	<span class="o">**</span><span class="n">kwargs</span></span><span class="return-annotation">):</span></span>
 
         
     </div>
@@ -1128,6 +1106,10 @@ The stopping time index for the projection. (Defaults to 80)</li>
 The axes to plot on. (Defaults to creating a new one)</li>
 <li><strong>show</strong> (bool, optional):
 Whether to show the graph after creation. (Defaults to True)</li>
+<li><strong>epsilon</strong> (float, optional):
+The value to use for the epsilon parameter (default is 0.51).</li>
+<li><strong>delta</strong> (float, optional):
+The value to use for the delta parameter (default is 1.76).</li>
 </ul>
 </div>
 
@@ -1334,223 +1316,6 @@ For example, if forward_edges = [1, 3], then each node i sends to nodes (i+1) mo
 <ul>
 <li><strong>sA</strong> (array-like):
 The adjacency matrix of the circulant graph.</li>
-</ul>
-</div>
-
-
-                            </div>
-                            <div id="CTLN.get_symbolic_w" class="classattr">
-                                <div class="attr function">
-                    <div class="decorator decorator-classmethod">@classmethod</div>
-
-        <span class="def">def</span>
-        <span class="name">get_symbolic_w</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">cls</span>, </span><span class="param"><span class="n">sA</span></span><span class="return-annotation">):</span></span>
-
-        
-    </div>
-    <a class="headerlink" href="#CTLN.get_symbolic_w"></a>
-    
-    
-
-                            </div>
-                            <div id="CTLN.s_i_of_sig" class="classattr">
-                                <div class="attr function">
-                    <div class="decorator decorator-classmethod">@classmethod</div>
-
-        <span class="def">def</span>
-        <span class="name">s_i_of_sig</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">cls</span>, </span><span class="param"><span class="n">sA</span>, </span><span class="param"><span class="n">sigma</span>, </span><span class="param"><span class="n">i</span>, </span><span class="param"><span class="o">**</span><span class="n">kwargs</span></span><span class="return-annotation">):</span></span>
-
-        
-    </div>
-    <a class="headerlink" href="#CTLN.s_i_of_sig"></a>
-    
-            <div class="docstring"><p>A method for calculating the s_i value for a particular sA, i,
-and sigma</p>
-
-<h6 id="parameters">Parameters</h6>
-
-<ul>
-<li><strong>sA</strong> (array-like):
-The adjacency matrix of the CTLN.</li>
-<li><strong>sigma</strong> (list of ints):
-A list of the indices for the nodes in the sigma to
-calculate with respect to</li>
-<li><strong>i</strong> (int):
-The index of the node to check as the i</li>
-<li><strong>kwargs</strong> (dict):
-Additional keyword arguments to pass to get_w_mat, 
-for values of epsilon and delta.</li>
-</ul>
-
-<h6 id="returns">Returns</h6>
-
-<ul>
-<li><strong>The computed s_i^sigma value.</strong></li>
-</ul>
-</div>
-
-
-                            </div>
-                            <div id="CTLN.check_si_survival" class="classattr">
-                                <div class="attr function">
-                    <div class="decorator decorator-classmethod">@classmethod</div>
-
-        <span class="def">def</span>
-        <span class="name">check_si_survival</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">cls</span>, </span><span class="param"><span class="n">sA</span>, </span><span class="param"><span class="n">sigma</span>, </span><span class="param"><span class="o">**</span><span class="n">kwargs</span></span><span class="return-annotation">):</span></span>
-
-        
-    </div>
-    <a class="headerlink" href="#CTLN.check_si_survival"></a>
-    
-            <div class="docstring"><p>A method for determining if a sigma is a FP of a given CTLN
-    using sign conditions.</p>
-
-<h6 id="parameters">Parameters</h6>
-
-<ul>
-<li><strong>sA</strong> (array-like):
-The adjacency matrix of the CTLN</li>
-<li><strong>sigma</strong> (array-like):
-A list of integer indices that represent which nodes are in sigma</li>
-<li><strong>kwargs</strong> (dict):
-Additional keyword arguments to pass to s_i_of_sig, 
-for values of epsilon and delta.</li>
-</ul>
-
-<h6 id="returns">Returns</h6>
-
-<ul>
-<li><strong>True if sigma survives, False if not.</strong></li>
-</ul>
-</div>
-
-
-                            </div>
-                            <div id="CTLN.get_fp_by_si" class="classattr">
-                                <div class="attr function">
-                    <div class="decorator decorator-classmethod">@classmethod</div>
-
-        <span class="def">def</span>
-        <span class="name">get_fp_by_si</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">cls</span>, </span><span class="param"><span class="n">sA</span>, </span><span class="param"><span class="o">**</span><span class="n">kwargs</span></span><span class="return-annotation">):</span></span>
-
-        
-    </div>
-    <a class="headerlink" href="#CTLN.get_fp_by_si"></a>
-    
-    
-
-                            </div>
-                            <div id="CTLN.get_param_indep_fps" class="classattr">
-                                <div class="attr function">
-                    <div class="decorator decorator-classmethod">@classmethod</div>
-
-        <span class="def">def</span>
-        <span class="name">get_param_indep_fps</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">cls</span>, </span><span class="param"><span class="n">sA</span></span><span class="return-annotation">):</span></span>
-
-        
-    </div>
-    <a class="headerlink" href="#CTLN.get_param_indep_fps"></a>
-    
-    
-
-                            </div>
-                            <div id="CTLN.core_is_param_indep" class="classattr">
-                                <div class="attr function">
-                    <div class="decorator decorator-classmethod">@classmethod</div>
-
-        <span class="def">def</span>
-        <span class="name">core_is_param_indep</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">cls</span>, </span><span class="param"><span class="n">sA</span></span><span class="return-annotation">):</span></span>
-
-        
-    </div>
-    <a class="headerlink" href="#CTLN.core_is_param_indep"></a>
-    
-    
-
-                            </div>
-                            <div id="CTLN.has_chaining_overlap" class="classattr">
-                                <div class="attr function">
-                    <div class="decorator decorator-classmethod">@classmethod</div>
-
-        <span class="def">def</span>
-        <span class="name">has_chaining_overlap</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">cls</span>, </span><span class="param"><span class="n">sA</span>, </span><span class="param"><span class="n">o1</span>, </span><span class="param"><span class="n">t1</span>, </span><span class="param"><span class="n">o2</span>, </span><span class="param"><span class="n">t2</span></span><span class="return-annotation">):</span></span>
-
-        
-    </div>
-    <a class="headerlink" href="#CTLN.has_chaining_overlap"></a>
-    
-    
-
-                            </div>
-                            <div id="CTLN.is_simply_added" class="classattr">
-                                <div class="attr function">
-                    <div class="decorator decorator-classmethod">@classmethod</div>
-
-        <span class="def">def</span>
-        <span class="name">is_simply_added</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">cls</span>, </span><span class="param"><span class="n">sA</span>, </span><span class="param"><span class="n">tau</span>, </span><span class="param"><span class="n">omega</span></span><span class="return-annotation">):</span></span>
-
-        
-    </div>
-    <a class="headerlink" href="#CTLN.is_simply_added"></a>
-    
-    
-
-                            </div>
-                            <div id="CTLN.find_simply_embedded_taus" class="classattr">
-                                <div class="attr function">
-                    <div class="decorator decorator-classmethod">@classmethod</div>
-
-        <span class="def">def</span>
-        <span class="name">find_simply_embedded_taus</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">cls</span>, </span><span class="param"><span class="n">sA</span></span><span class="return-annotation">):</span></span>
-
-        
-    </div>
-    <a class="headerlink" href="#CTLN.find_simply_embedded_taus"></a>
-    
-    
-
-                            </div>
-                            <div id="CTLN.all_cycles" class="classattr">
-                                <div class="attr function">
-                    <div class="decorator decorator-classmethod">@classmethod</div>
-
-        <span class="def">def</span>
-        <span class="name">all_cycles</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">cls</span>, </span><span class="param"><span class="n">sA</span></span><span class="return-annotation">):</span></span>
-
-        
-    </div>
-    <a class="headerlink" href="#CTLN.all_cycles"></a>
-    
-    
-
-                            </div>
-                            <div id="CTLN.get_random_graph" class="classattr">
-                                <div class="attr function">
-                    <div class="decorator decorator-staticmethod">@staticmethod</div>
-
-        <span class="def">def</span>
-        <span class="name">get_random_graph</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">n</span></span><span class="return-annotation">):</span></span>
-
-        
-    </div>
-    <a class="headerlink" href="#CTLN.get_random_graph"></a>
-    
-            <div class="docstring"><p>A simple method for generating a random adjacency matrix of size n by n,
-  with 0s on the diagonal and 0s and 1s elsewhere.</p>
-
-<h6 id="parameters">Parameters</h6>
-
-<ul>
-<li><strong>n</strong> (int):
-The size of the adjacency matrix to generate.</li>
-</ul>
-
-<h6 id="returns">Returns</h6>
-
-<ul>
-<li><strong>sA</strong> (array-like):
-A random adjacency matrix of size n by n, with 0s on the diagonal and
-0s and 1s elsewhere.</li>
 </ul>
 </div>
 
