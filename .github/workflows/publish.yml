@@ -38,6 +38,7 @@ jobs:
         pip install scipy
         pip install sympy
         pip install matplotlib
+        pip install requests
     - name: Run tests
       run: hatch test
     - name: Build docs
