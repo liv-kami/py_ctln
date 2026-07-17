@@ -18,7 +18,7 @@ from sympy import symbols, Matrix, zeros, latex, factor
 
 # ────────────────────── Known Networks Class ──────────────────────
 
-class _KnownNetworks:
+class KnownNetworks:
     """A helper class for managing requests to use existing lists of
     known classes of CTLNs. This class allows us to provide these lists
     without forcing the user to load them all ahead of time, as these
@@ -27,34 +27,6 @@ class _KnownNetworks:
     Note that this class is not designed to be used *directly*,
     but rather a user should access these lists through the CTLN class
     via CTLN.collections.method_name_here()
-
-    Methods
-    -------
-    _mat_to_d6(sA)
-        Not intended for use by the end user. This handles the
-        conversion of an adjacency matrix to a d6 byte string.
-    _mats_to_d6(cls, sAlist, save_to)
-        Not intended for use by the end user. This handles converting a
-        list of adjacency matrices to d6 byte strings.
-    _d6_to_mat(ds)
-        Not intended for use by the end user. This handles converting a
-        d6 byte string to an adjacency matrix.
-    _read_d6_file(cls, path)
-        Not intended for use by the end user. This handles reading a
-        list of adjacency matrices from a d6 file.
-    _load_data(path_ref)
-        Not intended for use by the end user. This handles the loading of
-        the pkl files and returns the list for the user
-    _convert_mat_to_pkl(mat_ref, save_name, mat_part)
-        Not intended for use by the end user. This handles the
-        conversion of old .mat files to the python-preferred .pkl format.
-    all_n(n)
-        Returns a list of all CTLNs with n nodes.
-    core_n(n)
-        Returns a list of all CTLNs with n nodes that are *core motifs*.
-    strongly_core_n(n)
-        Returns a list of all CTLNs with n nodes that are *strongly core
-        motifs*.
     """
 
     @staticmethod
@@ -381,112 +353,12 @@ class _KnownNetworks:
 class CTLN:
     """A class used to provide functions for Combinatorial Threshold
     Linear Network (CTLN) calculations and research.
-
-    ...
-
-    Attributes
-    ----------
-    epsilon : float, optional
-        The value to use for the epsilon parameter (default is 0.51).
-    delta : float, optional
-        The value to use for the delta parameter (default is 1.76).
-    collections : _KnownNetworks
-        A pointer for accessing collections of known CTLNs.
-
-    Methods
-    -------
-    _get_graph_colors(n)
-        A method to create colors for graphing a CTLN
-    _check_adjacency(sA)
-        A method to check the validity of an adjacency matrix
-        to prevent errors.
-    set_params(epsilon, delta)
-        Allows the user to define the values for the parameters epsilon
-        and delta
-    get_w_mat(sA)
-        Creates the W matrix from the adjacency matrix.
-    check_fp(sA, sig)
-        Checks if a given subgraph (sigma) is a fixed point support
-        of a given CTLN
-    check_stability(sA, sig)
-        Checks whether a given subgraph (sigma) is a stable fixed point
-        or not (unstable)
-    get_fp(sA)
-        A method that finds all of the fixed points, their supports,
-        and their stability for a given CTLN.
-    threshlin_ode(sA,t,x0)
-        A method for solving the system of piecewise linear ordinary
-        differential equations to get the firing rates of the neurons
-        over time for a given set of initial conditions.
-    get_soln(sA)
-        A method for obtaining the solution for a CTLN
-    plot_graph(sA, ax,show)
-        A method that plots the graph of the CTLN.
-    plot_soln(sA)
-        A method that plots both the graph and the solution of the CTLN.
-    run_ctln_model_script(sA)
-        An alias for plot_soln.
-    is_uid(sA)
-        A method for determining if a CTLN is uniform in-degree.
-    is_uod(sA)
-        A method for determining if a CTLN is uniform out-degree.
-    is_core(sA)
-        A method for determining if a CTLN is a core motif.
-    is_permitted(sA)
-        A method for determining if a CTLN is a permitted motif.
-    find_graphical_domination(sA,types_to_look_for)
-        A method for finding graphical domination relationships within a
-        CTLN
-    is_strongly_connected(sA)
-        A method for determining if a CTLN is strongly connected.
-    is_weakly_connected(sA)
-        A method for determining if a CTLN is weakly connected.
-    is_connected(sA)
-        A method for determining if a CTLN is connected (weakly or
-        strongly).
-    is_strongly_core(sA)
-        A method for determining if a CTLN is *strongly* core motif.
-    is_hamiltonian(sA)
-        A method for determining if a CTLN is hamiltonian (Contains a
-        hamiltonian cycle of size n)
-    get_projection_direction(sA)
-        A method for getting the projection direction to use for
-        plotting the projection of the solution onto two dimensions.
-    plot_projection(sA, dim1, dim2, ax, show)
-        A method for plotting the projection of the solution onto two
-        dimensions.
-    plot_grayscale(soln, ax)
-        A method for plotting the solution as a grayscale heatmap over time.
-    parallel_run(matrices, method, num_processes)
-        A method that applies a CTLN class method to multiple matrices
-        in parallel using multiprocessing for efficient batch processing.
-    _check_for_updates()
-        A method that checks if there is an update available for the package 
-        and alerts the user if there is. Called on import.
-    is_circulant(sA)
-        A method for determining if a CTLN is circulant, and if so, what the
-        ordering and forward edges are.
-    is_clique_union(sA, tau_partition)
-        A method for determining if a CTLN is a clique union with respect
-        to a particular partitioning of the nodes.
-    is_directional(sA, omega, tau)
-        A method for determining if a CTLN is directional with respect to a
-        particular omega and tau partitioning of the graph.
-    get_circulant_graph(n, forward_edges)
-        A method for generating the adjacency matrix for a circulant graph
-        with n nodes and the specified forward edges.
-    _make_all_embeddings(n)
-        A method for producing all of the possible embeddings to test when checking parameter dependence
-    _check_survival_param_ind(cls, sA, sigma,k_of_interest, dom)
-        A method for checking if a particular sigma survives the addition of particular dominator nodes k.
-    _check_survival_all_embeddings(cls, sA_sig, sigma)
-        A method for checking the survival of a particular sigma with respect to all possible domination embeddings.
     """
 
     epsilon: float = 0.51
     delta: float = 1.76
 
-    collections = _KnownNetworks()
+    collections = KnownNetworks()
 
     @staticmethod
     def _get_graph_colors(n):
@@ -1999,6 +1871,8 @@ class CTLN:
         # Return the adjacency matrix
         return sA
 
+    # NOTE::: Here down is unfinished test code that is not designed to be used just yet!!!
+
     @classmethod
     def get_symbolic_w(cls, sA):
         # Check that the given adjacency matrix is valid.
@@ -2344,6 +2218,42 @@ class CTLN:
                     se_taus.append(tau)
 
         return se_taus
+
+    @classmethod
+    def _sa_to_dict(cls, sA):
+        sA = cls._check_adjacency(sA)
+        return {i: list(np.where(sA[:, i] == 1)[0]) for i in range(sA.shape[0])}
+        # node(indexed at 0) -> [list of nodes it sends to, indexed at 0]
+    
+    @classmethod
+    def all_cycles(cls, sA):
+        sA = cls._check_adjacency(sA)
+        n = sA.shape[0]
+        d = cls._sa_to_dict(sA)
+        cycles = []
+        for i in range(n): # for each node
+            sends_to = d.get(i) # list of what i sends to
+            pass
+
+    @staticmethod
+    def get_random_graph(n):
+        """ A simple method for generating a random adjacency matrix of size n by n,
+          with 0s on the diagonal and 0s and 1s elsewhere.
+
+        Parameters
+        ----------
+        n : int
+            The size of the adjacency matrix to generate.
+
+        Returns
+        -------
+        sA : array-like
+            A random adjacency matrix of size n by n, with 0s on the diagonal and
+            0s and 1s elsewhere.
+        """
+        sA = np.random.randint(low=0,high=2, size=(n,n))
+        np.fill_diagonal(sA, 0)
+        return sA
 
 # Checks for package update on import
 CTLN._check_for_updates()
